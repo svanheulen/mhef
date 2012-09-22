@@ -1,0 +1,29 @@
+These libraries and examples provide the various encryption functions
+used in Monster Hunter games.
+
+You can report issues, get the latest version, and view the source at:
+  http://github.com/svanheulen/mhef
+
+Bitcoin donations are accepted at: 1D8WAcF6X5Cji3aJQ5iDx3UDQqsjPJAiVF
+
+The functions in data.c are used to encrypt and decrypt the main
+DATA.BIN file stored on the UMD. The cipher tables in these files were
+taken from Monster Hunter Portable 3rd but they also work for Monster
+Hunter Freedom Unite. There's an example of how to decrypt the
+DATA.BIN in the data_example.c file.
+
+The functions in quest.c are used to encrypt and decrypt the event
+quest files downloaded from within the game. The keys in these files
+were taken form Monster Hunter Portable 3rd and I have not tested them
+with any other version of the game. There's an example of how to
+decrypt a quest file in the quest_example.c file.
+
+The download.py file can be used to download pages and files from the
+Monster Hunter Portable 3rd event quest server. It requires Python 2.7
+to run.
+
+The functions in savedata.c are used to encrypt and decrypt the save
+data. The cipher tables in these files were take from Monster Hunter
+Portable 3rd and will only work with unencrypted PSP save data from
+that game. There's an example of how to decrypt some save data in the
+savedata_example.c file.
