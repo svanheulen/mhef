@@ -20,7 +20,7 @@ along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SAVEDATA_H
 #define SAVEDATA_H
 
-int savedata_decrypt(char *data, int size);
-int savedata_encrypt(char *data, int size);
+int savedata_decrypt(unsigned char *data, unsigned int size);
+int savedata_encrypt(unsigned char *data, unsigned int size);
 
 #endif

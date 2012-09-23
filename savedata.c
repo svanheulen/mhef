@@ -102,7 +102,7 @@ unsigned int savedata_next_key() {
     return (key1 << 16) + key2;
 }
 
-int savedata_decrypt(char *data, int size) {
+int savedata_decrypt(unsigned char *data, unsigned int size) {
     // Check that there is at least enough data for a footer.
     if (size < 24)
         return -1;
@@ -136,7 +136,7 @@ int savedata_decrypt(char *data, int size) {
     return memcmp(md, data + size - 24, 20);
 }
 
-int savedata_encrypt(char *data, int size) {
+int savedata_encrypt(unsigned char *data, unsigned int size) {
     // Check that there is at least enough room for the footer.
     if (size < 24)
         return -1;

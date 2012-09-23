@@ -32,7 +32,7 @@ static const unsigned int update_key[] = {0x3DF3, 0x1709, 0xB381, 0x747B};
 // SHA1 hash salt retrieved from game.
 static const char salt[] = "sR2Tf4eLAj8b3TH7";
 
-int quest_decrypt(char *data, int size) {
+int quest_decrypt(unsigned char *data, unsigned int size) {
     // Check that there is at least enough data for a header.
     if (size < 32)
         return -1;
@@ -67,7 +67,7 @@ int quest_decrypt(char *data, int size) {
     return memcmp(md, data + 12, 20);
 }
 
-int quest_encrypt(char *data, int size) {
+int quest_encrypt(unsigned char *data, unsigned int size) {
     // Check that there is at least enough room for the header.
     if (size < 32)
         return -1;

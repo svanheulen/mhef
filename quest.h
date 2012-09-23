@@ -20,7 +20,7 @@ along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef QUEST_H
 #define QUEST_H
 
-int quest_decrypt(char *data, int size);
-int quest_encrypt(char *data, int size);
+int quest_decrypt(unsigned char *data, unsigned int size);
+int quest_encrypt(unsigned char *data, unsigned int size);
 
 #endif
