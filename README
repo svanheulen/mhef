@@ -4,7 +4,7 @@ used in Monster Hunter games.
 You can report issues, get the latest version, and view the source at:
   http://github.com/svanheulen/mhef
 
-Bitcoin donations are accepted at: 1D8WAcF6X5Cji3aJQ5iDx3UDQqsjPJAiVF
+Bitcoin donations are accepted at: 1FiViad5t8ESJ6FUxosffXzvRPH86b1TUi
 
 The functions in data.c are used to encrypt and decrypt the main
 DATA.BIN file stored on the UMD. The cipher tables in these files were
