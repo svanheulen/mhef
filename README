@@ -12,11 +12,11 @@ taken from Monster Hunter Portable 3rd but they also work for Monster
 Hunter Freedom Unite. There's an example of how to decrypt the
 DATA.BIN in the data_example.c file.
 
-The functions in quest.c are used to encrypt and decrypt the event
-quest files downloaded from within the game. The keys in these files
-were taken form Monster Hunter Portable 3rd and I have not tested them
-with any other version of the game. There's an example of how to
-decrypt a quest file in the quest_example.c file.
+The functions in quest.c are used to encrypt, decrypt and checksum the
+event quest files downloaded from within the game. The keys in these
+files were taken form Monster Hunter Portable 3rd and I have not
+tested them with any other version of the game. There's an example of
+how to decrypt a quest file in the quest_example.c file.
 
 The download.py file can be used to download pages and files from the
 Monster Hunter Portable 3rd event quest server. It requires Python 2.7

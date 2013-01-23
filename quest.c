@@ -105,3 +105,14 @@ int quest_encrypt(unsigned char *data, unsigned int size) {
     }
     return 0;
 }
+
+unsigned short int quest_csum(unsigned char *data, unsigned int size) {
+    unsigned int csum = 0;
+    unsigned int pos;
+    // Sum all bytes in the encrypted quest file.
+    for(pos = 0; pos < size; pos++) {
+        csum += data[pos];
+    }
+    // Take the last 16 bits as the check sum.
+    return csum & 0xffff;
+}

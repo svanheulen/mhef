@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
         return 3;
     }
     fclose(input);
+    printf("quest checksum = %d\n", quest_csum(data, size));
     if (quest_decrypt(data, size) != 0) {
         printf("error: input file is not a valid quest file.\n");
         return 4;

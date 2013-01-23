@@ -22,5 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 int quest_decrypt(unsigned char *data, unsigned int size);
 int quest_encrypt(unsigned char *data, unsigned int size);
+unsigned short int quest_csum(unsigned char *data, unsigned int size);
 
 #endif
