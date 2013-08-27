@@ -44,8 +44,8 @@ int quest_decrypt(unsigned char *data, unsigned int size) {
         if (key[pos] == 0)
             key[pos] = default_key[pos];
     }
-    // Process each two byte block of the file excluding the keys.
-    for (pos = 4; pos < (size / 2); pos++) {
+    // Process the header section of the file.
+    for (pos = 4; pos < 32; pos++) {
         // Determine the key to use for this block.
         int i = pos % 4;
         // Generate the next key for this block.
@@ -54,13 +54,20 @@ int quest_decrypt(unsigned char *data, unsigned int size) {
         ((unsigned short *) data)[pos] ^= key[i];
     }
     // Check that the size from the header matches the data size.
-    if ((size - 32) != ((int *) data)[2])
+    unsigned int actual_size = ((unsigned int *) data)[2];
+    if ((size - 32) < actual_size)
         return -1;
+    // Process the rest of the file.
+    for (pos = 32; pos < (actual_size / 2 + 16); pos++) {
+        int i = pos % 4;
+        key[i] = (key[i] * update_key[i]) % default_key[i];
+        ((unsigned short *) data)[pos] ^= key[i];
+    }
     // Hash the data, excluding the header and including the salt.
     char md[20];
     SHA_CTX c;
     SHA1_Init(&c);
-    SHA1_Update(&c, data + 32, size - 32);
+    SHA1_Update(&c, data + 32, actual_size);
     SHA1_Update(&c, salt, 16);
     SHA1_Final(md, &c);
     // Check that the hash matches the one in the header.
@@ -107,12 +114,11 @@ int quest_encrypt(unsigned char *data, unsigned int size) {
 }
 
 unsigned short int quest_csum(unsigned char *data, unsigned int size) {
-    unsigned int csum = 0;
+    unsigned short csum = 0;
     unsigned int pos;
     // Sum all bytes in the encrypted quest file.
     for(pos = 0; pos < size; pos++) {
         csum += data[pos];
     }
-    // Take the last 16 bits as the check sum.
-    return csum & 0xffff;
+    return csum;
 }
