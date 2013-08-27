@@ -57,6 +57,13 @@ static const unsigned char encryption_table[] = {
     0xe7, 0x15, 0x85, 0x39, 0x3a, 0xde, 0x0f, 0xd2, 0xb6, 0x8e, 0x27, 0xdb, 0xb5, 0x32, 0x45, 0x10
 };
 
+#define UNENCRYPTED_COUNT 16
+
+static const unsigned int unencrypted_files[] = {
+    17, 18, 19, 20,
+    81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92
+};
+
 static unsigned int key1 = 0x2345;
 static unsigned int key2 = 0x7f8d;
 
@@ -107,11 +114,13 @@ void data_parse_toc(unsigned int *data, file_info toc[]) {
     unsigned int i;
     for (i = 0; i < FILE_COUNT; i++) {
         toc[i].offset = data[i] * 2048;
-        toc[i].size = (data[i+1] - data[i]) * 2048;
+        toc[i].size = toc[i].actual_size = (data[i+1] - data[i]) * 2048;
         toc[i].encrypted = 1;
     }
-    for (i = FILE_COUNT + 1; i < SIZE_COUNT; i++) {
-        toc[data[i]].size = data[i+1];
-        toc[data[i]].encrypted = 0;
+    for (i = FILE_COUNT + 1; i < (FILE_COUNT + 1 + (SIZE_COUNT * 2)); i += 2) {
+        toc[data[i]].actual_size = data[i+1];
+    }
+    for (i = 0; i < UNENCRYPTED_COUNT; i++) {
+        toc[unencrypted_files[i]].encrypted = 0;
     }
 }

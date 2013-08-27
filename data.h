@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 typedef struct {
     unsigned int offset;
     unsigned int size;
+    unsigned int actual_size;
     char encrypted;
 } file_info;
 

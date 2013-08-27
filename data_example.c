@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
             data_init_key(toc[i].offset / 2048);
             data_decrypt(data, toc[i].size);
         }
-        fwrite(data, 1, toc[i].size, output);
+        fwrite(data, 1, toc[i].actual_size, output);
         if (ferror(input)) {
             printf("error: unable to write file data to output file.\n");
             return 9;
