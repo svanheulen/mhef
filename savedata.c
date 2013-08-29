@@ -72,33 +72,17 @@ unsigned int key2;
 void savedata_init_key(unsigned int seed) {
     // Set default values the the key if it's zero.
     key1 = seed >> 16;
-    if (key1 == 0) {
+    if (key1 == 0)
         key1 = 0xdfa3;
-    }
     key2 = seed & 0xffff;
-    if (key2 == 0) {
+    if (key2 == 0)
         key2 = 0x215f;
-    }
     return;
 }
 
 unsigned int savedata_next_key() {
-    // This function works but it's a mess. I copied the assembly
-    // exactly and then tried simplifying it but it's a confusing
-    // function...
-    unsigned int a2 = key2 * 0x215f;
-    unsigned int a3 = key1 * 0xdfa3;
-    unsigned int v1 = ((unsigned long long) a2 * 0x200e263f) >> 45;
-    unsigned int t1 = ((unsigned long long) a3 * 0x80088091) >> 32;
-    unsigned long long hilo = ((unsigned long long) t1 << 32) + a2;
-    t1 >>= 15;
-    hilo -= v1 * 0xff8f;
-    a2 = t1 << 4;
-    unsigned int v0 = t1 << 16;
-    v0 -= a2;
-    v0 -= t1;
-    key2 = hilo;
-    key1 = a3 - v0;
+    key1 = key1 * 0xdfa3 % 0xffef;
+    key2 = key2 * 0x215f % 0xff8f;
     return (key1 << 16) + key2;
 }
 
