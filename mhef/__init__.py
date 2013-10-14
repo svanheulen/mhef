@@ -27,56 +27,56 @@ class DataCypher:
         self._key[1] %= self._key_modifier[1]
         return (self._key[0] << 16) + self._key[1]
 
-    def encrypt(self, data, lba):
-        data = array.array('I', data)
+    def encrypt(self, buff, lba):
+        buff = array.array('I', buff)
         self._init_key(lba)
-        for i in range(len(data)):
-            data[i] ^= self._next_key()
-        return data.tostring().translate(self._encode_table)
+        for i in range(len(buff)):
+            buff[i] ^= self._next_key()
+        return buff.tostring().translate(self._encode_table)
 
-    def decrypt(self, data, lba):
-        data = array.array('I', data.translate(self._decode_table))
+    def decrypt(self, buff, lba):
+        buff = array.array('I', buff.translate(self._decode_table))
         self._init_key(lba)
-        for i in range(len(data)):
-            data[i] ^= self._next_key()
-        return data.tostring()
+        for i in range(len(buff)):
+            buff[i] ^= self._next_key()
+        return buff.tostring()
 
-    def encrypt_file(self, data_bin_file, out_file, exceptions=[]):
-        with open(data_bin_file, 'rb') as data_bin, open(out_file, 'wb') as out:
-            toc_size = array.array('I', data_bin.read(4))[0] * 2048
-            file_size = data_bin.seek(0, os.SEEK_END)
-            data_bin.seek(0)
-            toc = data_bin.read(toc_size)
+    def encrypt_file(self, data_file, out_file, exceptions=[]):
+        with open(data_file, 'rb') as data, open(out_file, 'wb') as out:
+            toc_size = array.array('I', data.read(4))[0] * 2048
+            file_size = data.seek(0, os.SEEK_END)
+            data.seek(0)
+            toc = data.read(toc_size)
             out.write(self.encrypt(toc, 0))
             toc = array.array('I', toc)
             file_count = toc.index(file_size // 2048)
             for i in range(file_count):
-                data_bin.seek(toc[i] * 2048)
+                data.seek(toc[i] * 2048)
                 out.seek(toc[i] * 2048)
-                data = data_bin.read((toc[i+1] - toc[i]) * 2048)
+                buff = data.read((toc[i+1] - toc[i]) * 2048)
                 if i in exceptions:
-                    out.write(data)
+                    out.write(buff)
                 else:
-                    out.write(self.encrypt(data, toc[i]))
+                    out.write(self.encrypt(buff, toc[i]))
 
-    def decrypt_file(self, data_bin_file, out_file, exceptions=[]):
-        with open(data_bin_file, 'rb') as data_bin, open(out_file, 'wb') as out:
-            toc_size = self.decrypt(data_bin.read(4), 0)
+    def decrypt_file(self, data_file, out_file, exceptions=[]):
+        with open(data_file, 'rb') as data, open(out_file, 'wb') as out:
+            toc_size = self.decrypt(data.read(4), 0)
             toc_size = array.array('I', toc_size)[0] * 2048
-            file_size = data_bin.seek(0, os.SEEK_END)
-            data_bin.seek(0)
-            toc = self.decrypt(data_bin.read(toc_size), 0)
+            file_size = data.seek(0, os.SEEK_END)
+            data.seek(0)
+            toc = self.decrypt(data.read(toc_size), 0)
             out.write(toc)
             toc = array.array('I', toc)
             file_count = toc.index(file_size // 2048)
             for i in range(file_count):
-                data_bin.seek(toc[i] * 2048)
+                data.seek(toc[i] * 2048)
                 out.seek(toc[i] * 2048)
-                data = data_bin.read((toc[i+1] - toc[i]) * 2048)
+                buff = data.read((toc[i+1] - toc[i]) * 2048)
                 if i in exceptions:
-                    out.write(data)
+                    out.write(buff)
                 else:
-                    out.write(self.decrypt(data, toc[i]))
+                    out.write(self.decrypt(buff, toc[i]))
 
 
 class SavedataCypher(DataCypher):
@@ -84,22 +84,30 @@ class SavedataCypher(DataCypher):
         DataCypher.__init__(self, encode_table, decode_table, key_default, key_modifier)
         self._hash_salt = hash_salt
 
-    def encrypt(self, data):
-        data += hashlib.sha1(data[:-12] + self._hash_salt).digest()
+    def encrypt(self, buff):
+        buff += hashlib.sha1(buff[:-12] + self._hash_salt).digest()
         seed = random.getrandbits(16)
-        data = DataCypher.encrypt(self, data.translate(self._encode_table), seed)
+        buff = DataCypher.encrypt(self, buff.translate(self._encode_table), seed)
         seed = array.array('I', [seed]).tostring()
-        return data + seed.translate(self._encode_table).translate(self._encode_table)
+        return buff + seed.translate(self._encode_table).translate(self._encode_table)
 
-    def decrypt(self, data):
-        seed = data[-4:].translate(self._decode_table).translate(self._decode_table)
-        data = DataCypher.decrypt(self, data[:-4], array.array('I', seed)[0])
-        data = data.translate(self._decode_table)
-        md = data[-20:]
-        data = data[:-20]
-        if md != hashlib.sha1(data[:-12] + self._hash_salt).digest():
+    def decrypt(self, buff):
+        seed = buff[-4:].translate(self._decode_table).translate(self._decode_table)
+        buff = DataCypher.decrypt(self, buff[:-4], array.array('I', seed)[0])
+        buff = buff.translate(self._decode_table)
+        md = buff[-20:]
+        buff = buff[:-20]
+        if md != hashlib.sha1(buff[:-12] + self._hash_salt).digest():
             raise ValueError('Invalid SHA1 hash in header.')
-        return data
+        return buff
+
+    def encrypt_file(self, savedata_file, out_file):
+        with open(savedata_file, 'rb') as savedata, open(out_file) as out:
+            out.write(self.encrypt(savedata.read()))
+
+    def decrypt_file(selt, savedata_file, out_file):
+        with open(savedata_file, 'rb') as savedata, open(out_file) as out:
+            out.write(self.decrypt(savedata.read()))
 
 
 class QuestCypher:
@@ -119,32 +127,40 @@ class QuestCypher:
         self._key[num] %= self._key_default[num]
         return self._key[num]
 
-    def encrypt(self, data):
-        data = array.array('I', [len(data)]).tostring() + hashlib.sha1(data + self._hash_salt).digest() + data
-        data = array.array('H', data)
+    def encrypt(self, buff):
+        buff = array.array('I', [len(buff)]).tostring() + hashlib.sha1(buff + self._hash_salt).digest() + buff
+        buff = array.array('H', buff)
         seed = []
         for i in range(4):
             seed.insert(0, random.getrandbits(16))
             self._init_key(seed[0], i)
-        for i in range(len(data)):
-            data[i] ^= self._next_key(i%4)
+        for i in range(len(buff)):
+            buff[i] ^= self._next_key(i%4)
         for i in range(4):
-            data.insert(0, seed[i])
-        return data.tostring()
+            buff.insert(0, seed[i])
+        return buff.tostring()
 
-    def decrypt(self, data):
-        data = array.array('H', data)
+    def decrypt(self, buff):
+        buff = array.array('H', buff)
         for i in range(4):
-            self._init_key(data.pop(0), i)
-        for i in range(len(data)):
-            data[i] ^= self._next_key(i%4)
-        data = data.tostring()
-        size = array.array('I', data[:4])[0]
-        md = data[4:24]
-        data = data[24:]
-        if size != len(data):
+            self._init_key(buff.pop(0), i)
+        for i in range(len(buff)):
+            buff[i] ^= self._next_key(i%4)
+        buff = buff.tostring()
+        size = array.array('I', buff[:4])[0]
+        md = buff[4:24]
+        buff = buff[24:]
+        if size != len(buff):
             raise ValueError('Invalid file size in header.')
-        if md != hashlib.sha1(data + self._hash_salt).digest():
+        if md != hashlib.sha1(buff + self._hash_salt).digest():
             raise ValueError('Invalid SHA1 hash in header.')
-        return data
+        return buff
+
+    def encrypt_file(self, quest_file, out_file):
+        with open(quest_file, 'rb') as quest, open(out_file) as out:
+            out.write(self.encrypt(quest.read()))
+
+    def decrypt_file(self, quest_file, out_file):
+        with open(quest_file, 'rb') as quest, open(out_file) as out:
+            out.write(self.decrypt(quest.read()))
 
