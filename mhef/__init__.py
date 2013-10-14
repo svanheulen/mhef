@@ -41,7 +41,7 @@ class DataCypher:
             data[i] ^= self._next_key()
         return data.tostring()
 
-    def encrypt_file(self, data_bin_dile, out_file, exceptions=[]):
+    def encrypt_file(self, data_bin_file, out_file, exceptions=[]):
         with open(data_bin_file, 'rb') as data_bin, open(out_file, 'wb') as out:
             toc_size = array.array('I', data_bin.read(4))[0] * 2048
             file_size = data_bin.seek(0, os.SEEK_END)
