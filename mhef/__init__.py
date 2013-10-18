@@ -4,7 +4,7 @@ import os
 import random
 
 
-class DataCypher:
+class DataCipher:
     def __init__(self, encode_table, decode_table, key_default, key_modifier):
         self._key = [0, 0]
         self._encode_table = encode_table
@@ -79,21 +79,21 @@ class DataCypher:
                     out.write(self.decrypt(buff, toc[i]))
 
 
-class SavedataCypher(DataCypher):
+class SavedataCipher(DataCipher):
     def __init__(self, encode_table, decode_table, key_default, key_modifier, hash_salt):
-        DataCypher.__init__(self, encode_table, decode_table, key_default, key_modifier)
+        DataCipher.__init__(self, encode_table, decode_table, key_default, key_modifier)
         self._hash_salt = hash_salt
 
     def encrypt(self, buff):
         buff += hashlib.sha1(buff[:-12] + self._hash_salt).digest()
         seed = random.getrandbits(16)
-        buff = DataCypher.encrypt(self, buff.translate(self._encode_table), seed)
+        buff = DataCipher.encrypt(self, buff.translate(self._encode_table), seed)
         seed = array.array('I', [seed]).tobytes()
         return buff + seed.translate(self._encode_table).translate(self._encode_table)
 
     def decrypt(self, buff):
         seed = buff[-4:].translate(self._decode_table).translate(self._decode_table)
-        buff = DataCypher.decrypt(self, buff[:-4], array.array('I', seed)[0])
+        buff = DataCipher.decrypt(self, buff[:-4], array.array('I', seed)[0])
         buff = buff.translate(self._decode_table)
         md = buff[-20:]
         buff = buff[:-20]
@@ -110,7 +110,7 @@ class SavedataCypher(DataCypher):
             out.write(self.decrypt(savedata.read()))
 
 
-class QuestCypher:
+class QuestCipher:
     def __init__(self, key_default, key_modifier, hash_salt):
         self._key = [0, 0, 0, 0]
         self._key_default = key_default
