@@ -32,14 +32,14 @@ class DataCypher:
         self._init_key(lba)
         for i in range(len(buff)):
             buff[i] ^= self._next_key()
-        return buff.tostring().translate(self._encode_table)
+        return buff.tobytes().translate(self._encode_table)
 
     def decrypt(self, buff, lba):
         buff = array.array('I', buff.translate(self._decode_table))
         self._init_key(lba)
         for i in range(len(buff)):
             buff[i] ^= self._next_key()
-        return buff.tostring()
+        return buff.tobytes()
 
     def encrypt_file(self, data_file, out_file, exceptions=[]):
         with open(data_file, 'rb') as data, open(out_file, 'wb') as out:
@@ -88,7 +88,7 @@ class SavedataCypher(DataCypher):
         buff += hashlib.sha1(buff[:-12] + self._hash_salt).digest()
         seed = random.getrandbits(16)
         buff = DataCypher.encrypt(self, buff.translate(self._encode_table), seed)
-        seed = array.array('I', [seed]).tostring()
+        seed = array.array('I', [seed]).tobytes()
         return buff + seed.translate(self._encode_table).translate(self._encode_table)
 
     def decrypt(self, buff):
@@ -102,11 +102,11 @@ class SavedataCypher(DataCypher):
         return buff
 
     def encrypt_file(self, savedata_file, out_file):
-        with open(savedata_file, 'rb') as savedata, open(out_file) as out:
+        with open(savedata_file, 'rb') as savedata, open(out_file, 'wb') as out:
             out.write(self.encrypt(savedata.read()))
 
-    def decrypt_file(selt, savedata_file, out_file):
-        with open(savedata_file, 'rb') as savedata, open(out_file) as out:
+    def decrypt_file(self, savedata_file, out_file):
+        with open(savedata_file, 'rb') as savedata, open(out_file, 'wb') as out:
             out.write(self.decrypt(savedata.read()))
 
 
@@ -128,7 +128,7 @@ class QuestCypher:
         return self._key[num]
 
     def encrypt(self, buff):
-        buff = array.array('I', [len(buff)]).tostring() + hashlib.sha1(buff + self._hash_salt).digest() + buff
+        buff = array.array('I', [len(buff)]).tobytes() + hashlib.sha1(buff + self._hash_salt).digest() + buff
         buff = array.array('H', buff)
         seed = []
         for i in range(4):
@@ -138,7 +138,7 @@ class QuestCypher:
             buff[i] ^= self._next_key(i%4)
         for i in range(4):
             buff.insert(0, seed[i])
-        return buff.tostring()
+        return buff.tobytes()
 
     def decrypt(self, buff):
         buff = array.array('H', buff)
@@ -146,7 +146,7 @@ class QuestCypher:
             self._init_key(buff.pop(0), i)
         for i in range(len(buff)):
             buff[i] ^= self._next_key(i%4)
-        buff = buff.tostring()
+        buff = buff.tobytes()
         size = array.array('I', buff[:4])[0]
         md = buff[4:24]
         buff = buff[24:]
@@ -157,10 +157,10 @@ class QuestCypher:
         return buff
 
     def encrypt_file(self, quest_file, out_file):
-        with open(quest_file, 'rb') as quest, open(out_file) as out:
+        with open(quest_file, 'rb') as quest, open(out_file, 'wb') as out:
             out.write(self.encrypt(quest.read()))
 
     def decrypt_file(self, quest_file, out_file):
-        with open(quest_file, 'rb') as quest, open(out_file) as out:
+        with open(quest_file, 'rb') as quest, open(out_file, 'wb') as out:
             out.write(self.decrypt(quest.read()))
 
