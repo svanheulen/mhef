@@ -110,6 +110,59 @@ class SavedataCipher(DataCipher):
             out.write(self.decrypt(savedata.read()))
 
 
+class PSPSavedataCipher:
+    hash_key_6 = b'pD\xa3\xae\xef]\xa5\xf2\x85\x7f\xf2\xd6\x94\xf56;'
+    hash_key_7 = b'\xecm)Y&5\xa5\x7f\x97*\r\xbc\xa3&3\x00'
+    aes_key_10 = b']\xc7\x119\xd0\x198\xbc\x02\x7f\xdd\xdc\xb0\x83}\x9d'
+    aes_key_19 = b'\x03\xb3\x02\xe8_\xf3\x81\xb1;\x8d\xaa*\x90\xff^a'
+
+    def __init__(self, key):
+        self.key = key
+
+    def encrypt(self, buf):
+        xor_key = os.urandom(16)
+        xor_buf = bytearray()
+        for i in range(1, len(buf) // 16 + 1):
+            xor_buf.extend(xor_key[:12])
+            xor_buf.extend(array.array('I', [i]).tobytes())
+        aes = AES.new(self.aes_key_19, AES.MODE_CBC, b'\x00'*16)
+        xor_buf = aes.decrypt(bytes(xor_buf))
+        out_buf = bytearray(buf)
+        for i in range(len(out_buf)):
+            out_buf[i] ^= xor_buf[i]
+        xor_key = [(xor_key[i] ^ self.hash_key_6[i]) for i in range(16)]
+        aes = AES.new(self.aes_key_10, AES.MODE_CBC, b'\x00'*16)
+        xor_key = aes.encrypt(bytes(xor_key))
+        xor_key = [(xor_key[i] ^ self.hash_key_7[i]) for i in range(16)]
+        xor_key = [(xor_key[i] ^ self.key[i]) for i in range(16)]
+        return bytes(xor_key) + bytes(out_buf)
+
+    def decrypt(self, buf):
+        xor_key = [(buf[i] ^ self.key[i]) for i in range(16)]
+        xor_key = [(xor_key[i] ^ self.hash_key_7[i]) for i in range(16)]
+        aes = AES.new(self.aes_key_10, AES.MODE_CBC, b'\x00'*16)
+        xor_key = aes.decrypt(bytes(xor_key))
+        xor_key = [(xor_key[i] ^ self.hash_key_6[i]) for i in range(12)]
+        xor_buf = bytearray()
+        for i in range(1, len(buf) // 16):
+            xor_buf.extend(xor_key)
+            xor_buf.extend(array.array('I', [i]).tobytes())
+        aes = AES.new(self.aes_key_19, AES.MODE_CBC, b'\x00'*16)
+        xor_buf = aes.decrypt(bytes(xor_buf))
+        out_buf = bytearray(buf[16:])
+        for i in range(len(out_buf)):
+            out_buf[i] ^= xor_buf[i]
+        return bytes(out_buf)
+
+    def encrypt_file(self, pspsavedata_file, out_file):
+        with open(pspsavedata_file, 'rb') as pspsavedata, open(out_file, 'wb') as out:
+            out.write(self.encrypt(pspsavedata.read()))
+
+    def decrypt_file(self, pspsavedata_file, out_file):
+        with open(pspsavedata_file, 'rb') as pspsavedata, open(out_file, 'wb') as out:
+            out.write(self.decrypt(pspsavedata.read()))
+
+
 class QuestCipher:
     def __init__(self, key_default, key_modifier, hash_salt):
         self._key = [0, 0, 0, 0]
