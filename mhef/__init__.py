@@ -117,7 +117,9 @@ class PSPSavedataCipher:
     aes_key_19 = b'\x03\xb3\x02\xe8_\xf3\x81\xb1;\x8d\xaa*\x90\xff^a'
 
     def __init__(self, key):
-        self.key = key
+        self._key = key
+        crypto = __import__('Crypto.Cipher', fromlist=('AES',))
+        self._AES = crypto.AES
 
     def encrypt(self, buf):
         xor_key = os.urandom(16)
@@ -125,29 +127,29 @@ class PSPSavedataCipher:
         for i in range(1, len(buf) // 16 + 1):
             xor_buf.extend(xor_key[:12])
             xor_buf.extend(array.array('I', [i]).tobytes())
-        aes = AES.new(self.aes_key_19, AES.MODE_CBC, b'\x00'*16)
+        aes = self._AES.new(self.aes_key_19, self._AES.MODE_CBC, b'\x00'*16)
         xor_buf = aes.decrypt(bytes(xor_buf))
         out_buf = bytearray(buf)
         for i in range(len(out_buf)):
             out_buf[i] ^= xor_buf[i]
         xor_key = [(xor_key[i] ^ self.hash_key_6[i]) for i in range(16)]
-        aes = AES.new(self.aes_key_10, AES.MODE_CBC, b'\x00'*16)
+        aes = self._AES.new(self.aes_key_10, self._AES.MODE_CBC, b'\x00'*16)
         xor_key = aes.encrypt(bytes(xor_key))
         xor_key = [(xor_key[i] ^ self.hash_key_7[i]) for i in range(16)]
-        xor_key = [(xor_key[i] ^ self.key[i]) for i in range(16)]
+        xor_key = [(xor_key[i] ^ self._key[i]) for i in range(16)]
         return bytes(xor_key) + bytes(out_buf)
 
     def decrypt(self, buf):
-        xor_key = [(buf[i] ^ self.key[i]) for i in range(16)]
+        xor_key = [(buf[i] ^ self._key[i]) for i in range(16)]
         xor_key = [(xor_key[i] ^ self.hash_key_7[i]) for i in range(16)]
-        aes = AES.new(self.aes_key_10, AES.MODE_CBC, b'\x00'*16)
+        aes = self._AES.new(self.aes_key_10, self._AES.MODE_CBC, b'\x00'*16)
         xor_key = aes.decrypt(bytes(xor_key))
         xor_key = [(xor_key[i] ^ self.hash_key_6[i]) for i in range(12)]
         xor_buf = bytearray()
         for i in range(1, len(buf) // 16):
             xor_buf.extend(xor_key)
             xor_buf.extend(array.array('I', [i]).tobytes())
-        aes = AES.new(self.aes_key_19, AES.MODE_CBC, b'\x00'*16)
+        aes = self._AES.new(self.aes_key_19, self._AES.MODE_CBC, b'\x00'*16)
         xor_buf = aes.decrypt(bytes(xor_buf))
         out_buf = bytearray(buf[16:])
         for i in range(len(out_buf)):
