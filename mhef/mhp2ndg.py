@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+DATA_EXCEPTIONS = ()
+
+
 SAVEDATA_HASH_SALT_NA = b'3Nc94Hq1zOLh8d62Sb69'
 SAVEDATA_HASH_SALT_JP = b'S)R?Bf8xW3#5h9lGU8wR'
 SAVEDATA_HASH_SALT_EU = SAVEDATA_HASH_SALT_NA
