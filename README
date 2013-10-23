@@ -1,22 +1,22 @@
-These examples and library provide the various encryption functions used in
-Monster Hunter games for the Playstation Portable.
+This module and example scripts provide the various encryption functions used
+in Monster Hunter games for the Playstation Portable.
 
 You can report issues, get the latest version, and view the source at:
   http://github.com/svanheulen/mhef
 
-The mhef package and the example scripts require Python 3.x
+The mhef module and example scripts require Python 3.x
 
-The data.py script can be used to decrypt or encrypt the main DATA.BIN file
-stored on the UMD of Monster Hunter Portable 3rd and 2nd G. It also gives an
-example of how to use the DataCipher class in the mhef package.
+The data.py example script can be used to decrypt or encrypt the main DATA.BIN
+file stored on the UMD of Monster Hunter Portable 3rd or 2nd G. It also gives
+an example of how to use the DataCipher class in the mhef module.
 
-The savedata.py script can be used to decrypt or encrypt a save file from
-Monster Hunter Portable 3rd, 2nd G and 2nd. It also gives an example of how to
-use the PSPSavedataCipher and SavedataCipher classes in the mhef package.
+The savedata.py example script can be used to decrypt or encrypt a save file
+from Monster Hunter Portable 3rd, 2nd G or 2nd. It also gives an example of how
+to use the PSPSavedataCipher and SavedataCipher classes in the mhef module.
 
-The quest.py script can be used to decrypt or encrypt a quest file downloaded
-from the Monster Hunter Portable 3rd or 2nd G DLC website. It also gives an
-example of how to use the QuestCipher class in the mhef package.
+The quest.py example script can be used to decrypt or encrypt a quest file
+downloaded from the Monster Hunter Portable 3rd or 2nd G DLC website. It also
+gives an example of how to use the QuestCipher class in the mhef module.
 
-The download.py file can be used to download files from the any of Monster
-Hunter Portable DLC websites.
+The download.py script can be used to download files from the Monster Hunter
+Portable 3rd, 2nd G or 2nd DLC websites.
