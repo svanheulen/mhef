@@ -203,6 +203,9 @@ class QuestCipher:
         self._key[num] %= self._key_default[num]
         return self._key[num]
 
+    def csum(self, buff):
+        return sum(buff) & 0xffff
+
     def encrypt(self, buff):
         buff = array.array('I', [len(buff)]).tobytes() + hashlib.sha1(buff + self._hash_salt).digest() + buff
         buff = array.array('H', buff)
@@ -234,9 +237,13 @@ class QuestCipher:
 
     def encrypt_file(self, quest_file, out_file):
         with open(quest_file, 'rb') as quest, open(out_file, 'wb') as out:
-            out.write(self.encrypt(quest.read()))
+            buff = self.encrypt(quest.read())
+            out.write(buff)
+            return self.csum(buff)
 
     def decrypt_file(self, quest_file, out_file):
         with open(quest_file, 'rb') as quest, open(out_file, 'wb') as out:
-            out.write(self.decrypt(quest.read()))
+            buff = quest.read()
+            out.write(self.decrypt(buff))
+            return self.csum(buff)
 
