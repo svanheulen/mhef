@@ -21,24 +21,19 @@ import mhef
 
 
 parser = argparse.ArgumentParser(description='Encrypts or decrypts a quest file from Monster Hunter 3rd or 2nd G')
-parser.add_argument('game', choices=['3rd', '2ndg_jp', '2ndg_na', '2ndg_eu'], help='version of Monster Hunter')
 parser.add_argument('mode', choices=['e', 'd'], help='(e)ncrypt or (d)ecrypt')
+parser.add_argument('game', choices=['3', '2G_JP', '2G_NA', '2G_EU'], help='version of Monster Hunter')
 parser.add_argument('inputfile', help='quest input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-if args.game == '3rd':
-    from mhef.mhp3rd import *
-else:
-    from mhef.mhp2ndg import *
+game = mhef.MHP3_JP
+if args.game == '2G_JP':
+    game = mhef.MHP2G_JP
+elif args.game == '2G_NA' or args.game == '2G_EU':
+    game = mhef.MHP2G_NA
 
-qc = None
-if args.game.endswith('_na'):
-    qc = mhef.QuestCipher(QUEST_KEY_DEFAULT, QUEST_KEY_MODIFIER, QUEST_HASH_SALT_NA)
-elif args.game.endswith('_eu'):
-    qc = mhef.QuestCipher(QUEST_KEY_DEFAULT, QUEST_KEY_MODIFIER, QUEST_HASH_SALT_EU)
-else:
-    qc = mhef.QuestCipher(QUEST_KEY_DEFAULT, QUEST_KEY_MODIFIER, QUEST_HASH_SALT_JP)
+qc = mhef.QuestCipher(game)
 
 if args.mode == 'e':
     qc.encrypt_file(args.inputfile, args.outputfile)

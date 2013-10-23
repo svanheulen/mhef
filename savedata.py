@@ -21,44 +21,37 @@ import mhef
 
 
 parser = argparse.ArgumentParser(description='Encrypts or decrypts a savedata file from Monster Hunter 3rd, 2nd G or 2nd')
-parser.add_argument('game', choices=['3rd', '2ndg_jp', '2ndg_na', '2ndg_eu', '2nd_jp', '2nd_na', '2nd_eu'], help='version of Monster Hunter')
 parser.add_argument('mode', choices=['e', 'd'], help='(e)ncrypt or (d)ecrypt')
+parser.add_argument('game', choices=['3', '2G_JP', '2G_NA', '2G_EU', '2_JP', '2_NA', '2_EU'], help='version of Monster Hunter')
 parser.add_argument('inputfile', help='savedata input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
+game = mhef.MHP3_JP
+if args.game == '2G_JP':
+    game = mhef.MHP2G_JP
+elif args.game == '2G_NA':
+    game = mhef.MHP2G_NA
+elif args.game == '2G_EU':
+    game = mhef.MHP2G_EU
+elif args.game == '2_JP':
+    game = mhef.MHP2_JP
+elif args.game == '2_NA':
+    game = mhef.MHP2_NA
+elif args.game == '2_EU':
+    game = mhef.MHP2_EU
 
-if args.game == '3rd':
-    from mhef.mhp3rd import *
-elif args.game.startswith('2ndg'):
-    from mhef.mhp2ndg import *
-else:
-    from mhef.mhp2nd import *
-
-psc = None
-if args.game.endswith('_jp') or args.game == '3rd':
-    psc = mhef.PSPSavedataCipher(PSPSAVEDATA_KEY_JP)
-elif args.game.endswith('_na'):
-    psc = mhef.PSPSavedataCipher(PSPSAVEDATA_KEY_NA)
-elif args.game.endswith('_eu'):
-    psc = mhef.PSPSavedataCipher(PSPSAVEDATA_KEY_EU)
-
-temp = None
+temp = open(args.inputfile, 'rb').read()
+psc = mhef.PSPSavedataCipher(game)
 if args.mode == 'e':
-    temp = psc.encrypt(open(args.inputfile, 'rb').read())
+    temp = psc.encrypt(temp)
 else:
-    temp = psc.decrypt(open(args.inputfile, 'rb').read())
+    temp = psc.decrypt(temp)
 
-if args.game.startswith('2nd_'):
+if game <= mhef.MHP2_EU:
     open(outputfile, 'wb').write(temp)
 else:
-    sc = None
-    if args.game.endswith('_jp') or args.game == '3rd':
-        sc = mhef.SavedataCipher(SAVEDATA_KEY_JP)
-    elif args.game.endswith('_na'):
-        sc = mhef.SavedataCipher(SAVEDATA_KEY_NA)
-    elif args.game.endswith('_eu'):
-        sc = mhef.SavedataCipher(SAVEDATA_KEY_EU)
+    sc = mhef.SavedataCipher(game)
     if args.mode == 'e':
         open(args.outputfile, 'wb').write(sc.encrypt(temp))
     else:

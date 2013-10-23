@@ -19,34 +19,31 @@ import argparse
 import urllib.request
 
 parser = argparse.ArgumentParser(description='Downloads a file from the Monster Hunter DLC websites (hint: the index page is DL_TOP.PHP)')
-parser.add_argument('game', choices=['3rd', '2ndg_jp', '2ndg_na', '2ndg_eu', '2nd_jp', '2nd_na', '2nd_eu', 'mhp'], help='version of Monster Hunter')
+parser.add_argument('game', choices=['3', '2G_JP', '2G_NA', '2G_EU', '2_JP', '2_NA', '2_EU'], help='version of Monster Hunter')
 parser.add_argument('remotefile', help='remote file to download')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
 uri = 'http://crusader.capcom.co.jp/psp/MHP3rd/'
 headers = {'User-Agent': 'Capcom Portable Browser v1.4 for MonsterHunterPortable3rd'}
-if args.game == '2ndg_jp':
+if args.game == '2G_JP':
     uri = 'http://viper.capcom.co.jp/psp/MHP2G/'
     headers = {'User-Agent': 'Capcom Portable Browser v1.3 for MH_Portable_2nd_G'}
-elif args.game == '2ndg_eu':
-    uri = 'http://viper.capcom.co.jp/psp/MHP2GPAL/'
-    headers = {'User-Agent': 'Capcom Portable Browser v1.3 for MH_Portable_2nd_G'}
-elif args.game == '2ndg_na':
+elif args.game == '2G_NA':
     uri = 'http://viper.capcom.co.jp/psp/MHP2GUSA/'
     headers = {'User-Agent': 'Capcom Portable Browser v1.3 for MH_Portable_2nd_G'}
-elif args.game == '2nd_jp':
+elif args.game == '2G_EU':
+    uri = 'http://viper.capcom.co.jp/psp/MHP2GPAL/'
+    headers = {'User-Agent': 'Capcom Portable Browser v1.3 for MH_Portable_2nd_G'}
+elif args.game == '2_JP':
     uri = 'http://skyhawk.capcom.co.jp/psp/MHP2/'
     headers = {'User-Agent': 'Capcom Portable Browser v1.2 for MH2nd_Portable'}
-elif args.game == '2nd_eu':
-    uri = 'http://skyhawk.capcom.co.jp/psp/MHP2PAL/'
-    headers = {'User-Agent': 'Capcom Portable Browser v1.2 for MH2nd_Portable'}
-elif args.game == '2nd_na':
+elif args.game == '2_NA':
     uri = 'http://skyhawk.capcom.co.jp/psp/MHP2USA/'
     headers = {'User-Agent': 'Capcom Portable Browser v1.2 for MH2nd_Portable'}
-elif args.game == 'mhp':
-    uri = 'http://corsair.capcom.co.jp/psp/MHPSP/'
-    headers = {'User-Agent': 'Capcom Portable Browser v1.0 for MH_Portable'}
+elif args.game == '2_EU':
+    uri = 'http://skyhawk.capcom.co.jp/psp/MHP2PAL/'
+    headers = {'User-Agent': 'Capcom Portable Browser v1.2 for MH2nd_Portable'}
 
 if args.remotefile.startswith('QUEST/'):
     headers['Referer'] = uri + 'DL_MENU.PHP'
