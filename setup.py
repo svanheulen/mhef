@@ -1,10 +1,9 @@
-import sys
 from distutils.core import setup
 
 
 setup(
     name='mhef',
-    version='1.0.0b1',
+    version='1.0.0b2',
     author='Seth VanHeulen',
     author_email='svanheulen@gmail.com',
     url='https://github.com/svanheulen/mhef',
@@ -16,6 +15,6 @@ setup(
         'Programming Language :: Python :: 3',
         'Topic :: Security :: Cryptography'
     ],
-    packages=['mhef']
+    py_modules=['mhef']
 )
 
