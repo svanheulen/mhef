@@ -55,7 +55,7 @@ elif args.remotefile.startswith('OTOMO/'):
 elif args.remotefile.startswith('BONUS/'):
     headers['Referer'] = uri + 'DL_BONUS.PHP'
 
-request = urllib.request.Request(uri + args.remotefile, '', headers)
+request = urllib.request.Request(uri + args.remotefile, b'', headers)
 response = urllib.request.urlopen(request)
 open(args.outputfile, 'wb').write(response.read())
 
