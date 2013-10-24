@@ -417,7 +417,7 @@ class PSPSavedataCipher:
         else:
             raise ValueError('Invalid game selected.')
 
-    def encrypt(self, buf):
+    def encrypt(self, buff):
         """
         Return an encrypted copy of the given PSP save file data.
 
@@ -426,23 +426,23 @@ class PSPSavedataCipher:
 
         """
         xor_key = os.urandom(16)
-        xor_buf = bytearray()
-        for i in range(1, len(buf) // 16 + 1):
-            xor_buf.extend(xor_key[:12])
-            xor_buf.extend(array.array('I', [i]).tobytes())
+        xor_buff = bytearray()
+        for i in range(1, len(buff) // 16 + 1):
+            xor_buff.extend(xor_key[:12])
+            xor_buff.extend(array.array('I', [i]).tobytes())
         aes = self._AES.new(self._aes_key_19, self._AES.MODE_CBC, b'\x00'*16)
-        xor_buf = aes.decrypt(bytes(xor_buf))
-        out_buf = bytearray(buf)
-        for i in range(len(out_buf)):
-            out_buf[i] ^= xor_buf[i]
+        xor_buff = aes.decrypt(bytes(xor_buff))
+        buff = bytearray(buff)
+        for i in range(len(buff)):
+            buff[i] ^= xor_buff[i]
         xor_key = [(xor_key[i] ^ self._hash_key_6[i]) for i in range(16)]
         aes = self._AES.new(self._aes_key_10, self._AES.MODE_CBC, b'\x00'*16)
         xor_key = aes.encrypt(bytes(xor_key))
         xor_key = [(xor_key[i] ^ self._hash_key_7[i]) for i in range(16)]
         xor_key = [(xor_key[i] ^ self._key[i]) for i in range(16)]
-        return bytes(xor_key) + bytes(out_buf)
+        return bytes(xor_key) + bytes(buff)
 
-    def decrypt(self, buf):
+    def decrypt(self, buff):
         """
         Return a decrypted copy of the given PSP save file data.
 
@@ -450,21 +450,21 @@ class PSPSavedataCipher:
         buff -- Data read from an encrypted PSP save file
 
         """
-        xor_key = [(buf[i] ^ self._key[i]) for i in range(16)]
+        xor_key = [(buff[i] ^ self._key[i]) for i in range(16)]
         xor_key = [(xor_key[i] ^ self._hash_key_7[i]) for i in range(16)]
         aes = self._AES.new(self._aes_key_10, self._AES.MODE_CBC, b'\x00'*16)
         xor_key = aes.decrypt(bytes(xor_key))
         xor_key = [(xor_key[i] ^ self._hash_key_6[i]) for i in range(12)]
-        xor_buf = bytearray()
-        for i in range(1, len(buf) // 16):
-            xor_buf.extend(xor_key)
-            xor_buf.extend(array.array('I', [i]).tobytes())
+        xor_buff = bytearray()
+        for i in range(1, len(buff) // 16):
+            xor_buff.extend(xor_key)
+            xor_buff.extend(array.array('I', [i]).tobytes())
         aes = self._AES.new(self._aes_key_19, self._AES.MODE_CBC, b'\x00'*16)
-        xor_buf = aes.decrypt(bytes(xor_buf))
-        out_buf = bytearray(buf[16:])
-        for i in range(len(out_buf)):
-            out_buf[i] ^= xor_buf[i]
-        return bytes(out_buf)
+        xor_buff = aes.decrypt(bytes(xor_buff))
+        buff = bytearray(buff[16:])
+        for i in range(len(buff)):
+            buff[i] ^= xor_buff[i]
+        return bytes(buff)
 
     def encrypt_file(self, pspsavedata_file, out_file):
         """
