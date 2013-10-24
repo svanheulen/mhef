@@ -510,7 +510,7 @@ class QuestCipher:
     _mhp2g_key_default = (0xff9d, 0xffa9, 0xffc7, 0xfff1)
     _mhp3_key_default = (0xffa9, 0xff9d, 0xfff1, 0xffc7)
     _mhp2g_key_modifier = (0x1709, 0x3df3, 0x747b, 0xb381)
-    _mhp3_key_modifiet = (0x3df3, 0x1709, 0xb381, 0x747b)
+    _mhp3_key_modifier = (0x3df3, 0x1709, 0xb381, 0x747b)
     _mhp2g_jp_hash_salt = b'37wyS2Jfc3x5w9oG'
     _mhp2g_na_hash_salt = b'Vd6gh8F30wA86Ex5'
     _mhp3_jp_hash_salt =b'sR2Tf4eLAj8b3TH7'
@@ -570,12 +570,11 @@ class QuestCipher:
         buff -- Data read from a decrypted quest file
 
         """
-        # Hash the unencrypted quest file data with the salt and add it to
-        # the start of the quest file data
-        buff = hashlib.sha1(buff + self._hash_salt).digest() + buff
-        # Add the quest file size to the start of the quest file data
-        buff = array.array('I', [len(buff)]).tobytes() + buff
-        buff = array.array('H', buff)
+        size = array.array('I', [len(buff)]).tobytes()
+        # Hash the unencrypted quest file data with the salt
+        md = hashlib.sha1(buff + self._hash_salt).digest()
+        # Add the size and hash to the start of the quest file data
+        buff = array.array('H', size + md + buff)
         # Create new encryption seeds
         seed = []
         for i in range(4):
