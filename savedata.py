@@ -43,17 +43,18 @@ elif args.game == '2_EU':
 
 temp = open(args.inputfile, 'rb').read()
 psc = mhef.PSPSavedataCipher(game)
-if args.mode == 'e':
-    temp = psc.encrypt(temp)
-else:
+if args.mode == 'd':
     temp = psc.decrypt(temp)
 
-if game <= mhef.MHP2_EU:
-    open(outputfile, 'wb').write(temp)
-else:
+if game >= mhef.MHP2G_JP:
     sc = mhef.SavedataCipher(game)
     if args.mode == 'e':
-        open(args.outputfile, 'wb').write(sc.encrypt(temp))
+        temp = sc.encrypt(temp)
     else:
-        open(args.outputfile, 'wb').write(sc.decrypt(temp))
+        temp = sc.decrypt(temp)
+
+if args.mode == 'e':
+    temp = psc.encrypt(temp)
+
+open(args.outputfile, 'wb').write(temp)
 
