@@ -94,7 +94,7 @@ class DataCipher:
             b'\x98k\r\x99\xea\xc5\xac'
     _key_default = (0x2345, 0x7f8d)
     _key_modifier = (0xffd9, 0xfff1)
-    _mhp2g_exceptions = ()
+    _mhp2g_exceptions = (42, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62)
     _mhp3_exceptions = (17, 18, 19, 20, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92)
 
     def __init__(self, game):
