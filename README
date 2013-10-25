@@ -18,5 +18,5 @@ The quest.py example script can be used to decrypt or encrypt a quest file
 downloaded from the Monster Hunter Portable 3rd or 2nd G DLC website. It also
 gives an example of how to use the QuestCipher class in the mhef module.
 
-The download.py script can be used to download files from the Monster Hunter
-Portable 3rd, 2nd G or 2nd DLC websites.
+The download.py script can be used to download files from any of the Monster
+Hunter Portable DLC websites.

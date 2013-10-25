@@ -20,7 +20,7 @@ import urllib.request
 
 
 parser = argparse.ArgumentParser(description='Downloads a file from the Monster Hunter DLC websites (hint: the index page is DL_TOP.PHP)')
-parser.add_argument('game', choices=['3', '2G_JP', '2G_NA', '2G_EU', '2_JP', '2_NA', '2_EU'], help='version of Monster Hunter')
+parser.add_argument('game', choices=['3', '2G_JP', '2G_NA', '2G_EU', '2_JP', '2_NA', '2_EU', '1'], help='version of Monster Hunter')
 parser.add_argument('remotefile', help='remote file to download')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
@@ -45,6 +45,9 @@ elif args.game == '2_NA':
 elif args.game == '2_EU':
     uri = 'http://skyhawk.capcom.co.jp/psp/MHP2PAL/'
     headers = {'User-Agent': 'Capcom Portable Browser v1.2 for MH2nd_Portable'}
+elif args.game == '1':
+    uri = 'http://corsair.capcom.co.jp/psp/MHPSP/'
+    headers = {'User-Agent': 'Capcom Portable Browser v1.0 for MH_Portable'}
 
 if args.remotefile.startswith('QUEST/'):
     headers['Referer'] = uri + 'DL_MENU.PHP'
@@ -52,6 +55,8 @@ elif args.remotefile.startswith('OTOMO/'):
     headers['Referer'] = uri + 'DL_OTOMO.PHP'
 elif args.remotefile.startswith('BONUS/'):
     headers['Referer'] = uri + 'DL_BONUS.PHP'
+elif args.remotefile.startswith('NOSSL/QUEST/'):
+    headers['Referer'] = uri + 'NOSSL/DL_MENU1.HTM'
 
 request = urllib.request.Request(uri + args.remotefile, b'', headers)
 response = urllib.request.urlopen(request)
