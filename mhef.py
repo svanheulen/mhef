@@ -115,7 +115,7 @@ class DataCipher:
             raise ValueError('Invalid game selected.')
 
     def _init_key(self, seed):
-        # Initialize the XOR key with a seed
+        # Initialize the XOR cipher key using a seed
         self._key[0] = seed >> 16;
         if self._key[0] == 0:
             self._key[0] = self._key_default[0]
@@ -124,7 +124,7 @@ class DataCipher:
             self._key[1] = self._key_default[1]
 
     def _next_key(self):
-        # Return the next XOR key
+        # Calculate a new XOR cipher key based on the previous key
         self._key[0] *= self._key_default[0]
         self._key[0] %= self._key_modifier[0]
         self._key[1] *= self._key_default[1]
@@ -141,12 +141,12 @@ class DataCipher:
 
         """
         buff = array.array('I', buff)
-        # Use the block offset to initialize the key
+        # Use the block address to seed the XOR cipher key
         self._init_key(lba)
-        # XOR each 4 bytes of the data with a new key
+        # Apply an XOR cipher to the data using a new key every 4 bytes
         for i in range(len(buff)):
             buff[i] ^= self._next_key()
-        # Translate the data with the encode table
+        # Apply a substitution cipher to the data using the encode table
         return buff.tobytes().translate(self._encode_table)
 
     def decrypt(self, buff, lba):
@@ -158,11 +158,11 @@ class DataCipher:
         lba -- Block address of the given data blacks
 
         """
-        # Translate the data with the encode table
+        # Apply a substitution cipher to the data using the decode table
         buff = array.array('I', buff.translate(self._decode_table))
-        # Use the block offset to initialize the key
+        # Use the block address to seed the XOR cipher key
         self._init_key(lba)
-        # XOR each 4 bytes of the data with a new key
+        # Apply an XOR cipher to the data using a new key every 4 bytes
         for i in range(len(buff)):
             buff[i] ^= self._next_key()
         return buff.tobytes()
@@ -177,8 +177,8 @@ class DataCipher:
 
         """
         with open(data_file, 'rb') as data, open(out_file, 'wb') as out:
-            # Get the size of the table of contents by getting the block offset
-            # of the first file
+            # Get the block address of the first file to determine the size of
+            # the table of contents
             toc_size = array.array('I', data.read(4))[0] * 2048
             file_size = data.seek(0, os.SEEK_END)
             data.seek(0)
@@ -210,8 +210,8 @@ class DataCipher:
 
         """
         with open(data_file, 'rb') as data, open(out_file, 'wb') as out:
-            # Get the size of the table of contents by decrypting the block
-            # offset of the first file
+            # Decrypt the block address of the first file to determine the size
+            # of the table of contents
             toc_size = self.decrypt(data.read(4), 0)
             toc_size = array.array('I', toc_size)[0] * 2048
             file_size = data.seek(0, os.SEEK_END)
@@ -309,15 +309,14 @@ class SavedataCipher(DataCipher):
         buff -- Data read from a decrypted save file
 
         """
-        # Hash the unencrypted save file data with the salt and append it to
-        # the save file data
+        # Hash the unencrypted data with the salt and append it to the data
         buff += hashlib.sha1(buff[:-12] + self._hash_salt).digest()
-        # Create a new encryption seed
+        # Create a new seed for the XOR cipher
         seed = random.getrandbits(16)
-        # Encode and encrypt the save file data
+        # Apply a substitution cipher to the data and encrypt it
         buff = DataCipher.encrypt(self, buff.translate(self._encode_table), seed)
         seed = array.array('I', [seed]).tobytes()
-        # Encode the seed and append it to the encrypted save file data
+        # Apply a substitution cipher to the XOR cipher seed and appen it to the data
         return buff + seed.translate(self._encode_table).translate(self._encode_table)
 
     def decrypt(self, buff):
@@ -328,16 +327,17 @@ class SavedataCipher(DataCipher):
         buff -- Data read from an encrypted save file
 
         """
-        # Decode the seed from the end of the encrypted save file data
+        # Get the XOR cipher seed from the end of the data and apply a
+        # substitution cipher
         seed = buff[-4:].translate(self._decode_table).translate(self._decode_table)
-        # Decrypted the save file data
+        # Decrypted the data
         buff = DataCipher.decrypt(self, buff[:-4], array.array('I', seed)[0])
-        # Decode the decrypted save file data
+        # Apply a substitution cipher to the data
         buff = buff.translate(self._decode_table)
+        # Get the hash from the end of the data
         md = buff[-20:]
         buff = buff[:-20]
-        # Hash the unencrypted save file data with the salt and compare it to
-        # the hash at the end of the save file data
+        # Hash the decrypted data with the salt and compare it
         if md != hashlib.sha1(buff[:-12] + self._hash_salt).digest():
             raise ValueError('Invalid SHA1 hash in header.')
         return buff
@@ -403,7 +403,7 @@ class PSPSavedataCipher:
         # Import AES cipher
         crypto = __import__('Crypto.Cipher', fromlist=('AES',))
         self._AES = crypto.AES
-        # Select encryption key
+        # Select the cipher key
         if game == MHP2_JP:
             self._key = self._mhp2_jp_key
         elif game == MHP2_NA or game == MHP2_EU:
@@ -524,7 +524,7 @@ class QuestCipher:
 
         """
         self._key = [0, 0, 0, 0]
-        # Select keys and hash salt
+        # Select XOR cipher parameters and the salt to use when hashing
         if game == MHP2G_JP:
             self._key_default = self._mhp2g_key_default
             self._key_modifier = self._mhp2g_key_modifier
@@ -541,13 +541,13 @@ class QuestCipher:
             raise ValueError('Invalid game selected.')
 
     def _init_key(self, seed, num):
-        # Initialize an XOR key with a seed
+        # Initialize the XOR cipher key using a seed
         self._key[num] = seed
         if self._key[num] == 0:
             self._key[num] = self._key_default[num]
 
     def _next_key(self, num):
-        # Return a new XOR key
+        # Calculate a new XOR cipher key based on the previous key
         self._key[num] *= self._key_modifier[num]
         self._key[num] %= self._key_default[num]
         return self._key[num]
@@ -571,19 +571,19 @@ class QuestCipher:
 
         """
         size = array.array('I', [len(buff)]).tobytes()
-        # Hash the unencrypted quest file data with the salt
+        # Hash the unencrypted data with the salt
         md = hashlib.sha1(buff + self._hash_salt).digest()
-        # Add the size and hash to the start of the quest file data
+        # Add the size and hash to the start of the data
         buff = array.array('H', size + md + buff)
-        # Create new encryption seeds
+        # Create new seeds for the XOR cipher
         seed = []
         for i in range(4):
             seed.insert(0, random.getrandbits(16))
             self._init_key(seed[0], i)
-        # XOR each 2 bytes of the quest file data with a new key
+        # Apply an XOR cipher to the data using a new key every 2 bytes
         for i in range(len(buff)):
             buff[i] ^= self._next_key(i%4)
-        # Add the encryption seeds to the start of the quest file data
+        # Add the XOR cipher seeds to the start of the data
         for i in range(4):
             buff.insert(0, seed[i])
         return buff.tobytes()
@@ -597,22 +597,22 @@ class QuestCipher:
 
         """
         buff = array.array('H', buff)
-        # Get the seeds from the start of the quest file data
+        # Get the XOR cipher seeds from the start of the data
         for i in range(4):
             self._init_key(buff.pop(0), i)
-        # XOR each 2 bytes of the quest file data with a new key
+        # Apply an XOR cipher to the data using a new key every 2 bytes
         for i in range(len(buff)):
             buff[i] ^= self._next_key(i%4)
         buff = buff.tobytes()
-        # Get the quest file size from the start of the quest file data
+        # Get the size from the start of the data
         size = array.array('I', buff[:4])[0]
+        # Get the hash from the start of the data
         md = buff[4:24]
         buff = buff[24:]
         # Check the size to make sure it matches
         if size != len(buff):
             raise ValueError('Invalid file size in header.')
-        # Hash the unencrypted quest file data with the salt and compare it
-        # to the hash at the start of the quest file data
+        # Hash the decrypted data with the salt and compare it
         if md != hashlib.sha1(buff + self._hash_salt).digest():
             raise ValueError('Invalid SHA1 hash in header.')
         return buff
