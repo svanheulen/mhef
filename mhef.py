@@ -316,7 +316,7 @@ class SavedataCipher(DataCipher):
         # Apply a substitution cipher to the data and encrypt it
         buff = DataCipher.encrypt(self, buff.translate(self._encode_table), seed)
         seed = array.array('I', [seed]).tobytes()
-        # Apply a substitution cipher to the XOR cipher seed and appen it to the data
+        # Apply a substitution cipher to the XOR cipher seed and append it to the data
         return buff + seed.translate(self._encode_table).translate(self._encode_table)
 
     def decrypt(self, buff):
@@ -619,7 +619,7 @@ class QuestCipher:
 
     def encrypt_file(self, quest_file, out_file):
         """
-        Save wn encrypted copy of the given quest file and return it's checksum.
+        Save an encrypted copy of the given quest file and return it's checksum.
 
         Arguments:
         quest_file -- Path to a decrypted quest file
