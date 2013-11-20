@@ -22,14 +22,18 @@ import mhef
 
 parser = argparse.ArgumentParser(description='Encrypts or decrypts the DATA.BIN file from Monster Hunter 3rd or 2nd G')
 parser.add_argument('mode', choices=['e', 'd'], help='(e)ncrypt or (d)ecrypt')
-parser.add_argument('game', choices=['3', '2G'], help='version of Monster Hunter')
+parser.add_argument('game', choices=['3', '2G_JP', '2G_NA', '2G_EU'], help='version of Monster Hunter')
 parser.add_argument('inputfile', help='DATA.BIN input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
 game = mhef.MHP3_JP
-if args.game == '2G':
+if args.game == '2G_JP':
     game = mhef.MHP2G_JP
+elif args.game == '2G_NA':
+    game = mhef.MHP2G_NA
+elif args.game == '2G_EU':
+    game = mhef.MHP2G_EU
 
 dc = mhef.DataCipher(game)
 

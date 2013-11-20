@@ -94,8 +94,9 @@ class DataCipher:
             b'\x98k\r\x99\xea\xc5\xac'
     _key_default = (0x2345, 0x7f8d)
     _key_modifier = (0xffd9, 0xfff1)
-    _mhp2g_exceptions = (42, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62)
-    _mhp3_exceptions = (17, 18, 19, 20, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92)
+    _mhp2g_jp_exceptions = (22, 23, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42)
+    _mhp2g_na_exceptions = (42, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62)
+    _mhp3_jp_exceptions = (17, 18, 19, 20, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92)
 
     def __init__(self, game):
         """
@@ -107,10 +108,12 @@ class DataCipher:
         """
         self._key = [0, 0]
         # Select which files are unencrypted
-        if game >= MHP2G_JP and game <= MHP2G_EU:
-            self._exceptions = self._mhp2g_exceptions
+        if game == MHP2G_JP:
+            self._exceptions = self._mhp2g_jp_exceptions
+        if game == MHP2G_NA or game == MHP2G_EU:
+            self._exceptions = self._mhp2g_na_exceptions
         elif game == MHP3_JP:
-            self._exceptions = self._mhp3_exceptions
+            self._exceptions = self._mhp3_jp_exceptions
         else:
             raise ValueError('Invalid game selected.')
 
