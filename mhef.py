@@ -438,7 +438,7 @@ class PSPSavedataCipher:
         buff = bytearray(buff)
         for i in range(len(buff)):
             buff[i] ^= xor_buff[i]
-        xor_key = [(xor_key[i] ^ self._hash_key_6[i]) for i in range(16)]
+        xor_key = [(xor_key[i] ^ self._hash_key_6[i]) for i in range(12)] + xor_key[12:]
         aes = self._AES.new(self._aes_key_10, self._AES.MODE_CBC, b'\x00'*16)
         xor_key = aes.encrypt(bytes(xor_key))
         xor_key = [(xor_key[i] ^ self._hash_key_7[i]) for i in range(16)]
