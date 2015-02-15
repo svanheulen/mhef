@@ -16,19 +16,26 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import binascii
 
 import mhef
 
 
-parser = argparse.ArgumentParser(description='Encrypts or decrypts a savedata file from Monster Hunter 3rd, 2nd G or 2nd')
+parser = argparse.ArgumentParser(description='Encrypts or decrypts a savedata file from Monster Hunter')
 parser.add_argument('mode', choices=['e', 'd'], help='(e)ncrypt or (d)ecrypt')
-parser.add_argument('game', choices=['3', '2G_JP', '2G_NA', '2G_EU', '2_JP', '2_NA', '2_EU'], help='version of Monster Hunter')
+parser.add_argument('game', choices=['3', '2G_JP', '2G_NA', '2G_EU', '2_JP', '2_NA', '2_EU', '1_JP', '1_NA', '1_EU'], help='version of Monster Hunter')
 parser.add_argument('inputfile', help='savedata input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
 game = mhef.MHP3_JP
-if args.game == '2G_JP':
+if args.game == '1_JP':
+    game = mhef.MHP_JP
+elif args.game == '1_NA':
+    game = mhef.MHP_NA
+elif args.game == '1_EU':
+    game = mhef.MHP_EU
+elif args.game == '2G_JP':
     game = mhef.MHP2G_JP
 elif args.game == '2G_NA':
     game = mhef.MHP2G_NA
@@ -44,6 +51,7 @@ elif args.game == '2_EU':
 temp = open(args.inputfile, 'rb').read()
 psc = mhef.PSPSavedataCipher(game)
 if args.mode == 'd':
+    print('hash:', binascii.hexlify(psc.hash(temp)).decode())
     temp = psc.decrypt(temp)
 
 if game >= mhef.MHP2G_JP:
@@ -55,6 +63,7 @@ if game >= mhef.MHP2G_JP:
 
 if args.mode == 'e':
     temp = psc.encrypt(temp)
+    print('hash:', binascii.hexlify(psc.hash(temp)).decode())
 
 open(args.outputfile, 'wb').write(temp)
 

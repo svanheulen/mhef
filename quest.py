@@ -36,7 +36,8 @@ elif args.game == '2G_NA' or args.game == '2G_EU':
 qc = mhef.QuestCipher(game)
 
 if args.mode == 'e':
-    qc.encrypt_file(args.inputfile, args.outputfile)
+    csum = qc.encrypt_file(args.inputfile, args.outputfile)
 else:
-    qc.decrypt_file(args.inputfile, args.outputfile)
+    csum = qc.decrypt_file(args.inputfile, args.outputfile)
+print('csum:', csum)
 

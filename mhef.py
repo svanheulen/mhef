@@ -42,6 +42,9 @@ import os
 import random
 
 
+MHP_JP = -3
+MHP_NA = -2
+MHP_EU = -1
 MHP2_JP = 0
 MHP2_NA = 1
 MHP2_EU = 2
@@ -375,7 +378,7 @@ class PSPSavedataCipher:
     Cipher for Playstion Portable save files.
 
     This class provides encryption functions for Playstation Portable save
-    files from the 3rd, 2nd G and 2nd versions of Monster Hunter.
+    files from all versions of Monster Hunter.
 
     Methods:
     encrypt -- Return an encrypted copy of the given PSP save file data
@@ -385,14 +388,24 @@ class PSPSavedataCipher:
 
     """
 
+    _hash_key_2 = b'\xfa\xaaP\xec/\xdeT\x93\xad\x14\xb2\xce\xa50\x05\xdf'
+    _hash_key_3 = b'6\xa5>\xac\xc5&\x9e\xa3\x83\xd9\xec%lHHr'
+    _hash_key_4 = b'\xd8\xc0\xb0\xf3>kv\x85\xfd\xfbM}E\x1e\x92\x03'
     _hash_key_5 = b'\xcb\x15\xf4\x07\xf9jR<\x04\xb9\xb2\xee\\S\xfa\x86'
     _hash_key_6 = b'pD\xa3\xae\xef]\xa5\xf2\x85\x7f\xf2\xd6\x94\xf56;'
     _hash_key_7 = b'\xecm)Y&5\xa5\x7f\x97*\r\xbc\xa3&3\x00'
 
+    _aes_key_0C = b'\x84\x85\xc8Hu\x08C\xbc\x9b\x9a\xec\xa7\x9c\x7f`\x18'
+    _aes_key_0C_sub = b'4\xe56\x9cs]\xcb\xf5\xdf\x18\x11s\xf7\xe5\xe4\x82'
+    _aes_key_0E = b'\xc8q\xfd\xb3\xbc\xc5\xd2\xf2\xe2\xd7r\x9d\xdf\x82h\x82'
     _aes_key_10 = b'2)[\xd5\xea\xf7\xa3B\x16\xc8\x8eH\xffP\xd3q'
+    _aes_key_10_sub = b'\xeer\xa1\xf5zE\xab[*/\xcc\xf7\x1a3v6'
     _aes_key_12 = b']\xc7\x119\xd0\x198\xbc\x02\x7f\xdd\xdc\xb0\x83}\x9d'
+    _aes_key_57 = b'\x1c\x9b\xc4\x90\xe3\x06d\x81\xfaY\xfd\xb6\x00\xbb(p'
     _aes_key_64 = b'\x03\xb3\x02\xe8_\xf3\x81\xb1;\x8d\xaa*\x90\xff^a'
 
+    _mhp_na_key = b'\x9fHl\xc2\x83\xa1\xb4\xeb\xd0\xb2<?\xe9pD\xdf'
+    _mhp_jp_key = b'>\r\xb2\xef^\xa5\xbe\xef\xd6\xad\x8e\x0fn\xad\xfe\x9f'
     _mhp2_jp_key = b'\xe3\xb5\xce\xfa\xe8N\xb0\xa1\x85\x9a\xb7\x1b\xdd\xe6\xd8\xf3'
     _mhp2_na_key = b'\xb9\xa9\x00\x9do\xc2\xb4\xeb\xf4\xf8\xca\xb2\xd7r\xe9\xab'
     _mhp2g_jp_key = b'\xcd\x1f Y\xaep\xefh\xdc\xa2E\x13\xb4Z\xdb\n'
@@ -411,16 +424,36 @@ class PSPSavedataCipher:
         crypto = __import__('Crypto.Cipher', fromlist=('AES',))
         self._AES = crypto.AES
         # Select the cipher key
-        if game == MHP2_JP:
-            self._key = self._mhp2_jp_key
-        elif game == MHP2_NA or game == MHP2_EU:
-            self._key = self._mhp2_na_key
-        elif game == MHP2G_JP:
-            self._key = self._mhp2g_jp_key
-        elif game == MHP2G_NA or game == MHP2G_EU:
-            self._key = self._mhp2g_na_key
-        elif game == MHP3_JP:
-            self._key = self._mhp3_jp_key
+        if game >= MHP_JP and game <= MHP_EU:
+            self._hash1 = self._hash_key_2
+            self._hash2 = self._aes_key_0C
+            self._hash3 = self._aes_key_0C_sub
+            self._cipher1 = self._hash_key_3
+            self._cipher2 = self._hash_key_4
+            self._cipher3 = self._aes_key_0E
+            self._cipher4 = self._aes_key_57
+            if game == MHP_JP or game == MHP_EU:
+                self._key = self._mhp_jp_key
+            elif game == MHP_NA:
+                self._key = self._mhp_na_key
+        elif game >= MHP2_JP and game <= MHP3_JP:
+            self._hash1 = self._hash_key_5
+            self._hash2 = self._aes_key_10
+            self._hash3 = self._aes_key_10_sub
+            self._cipher1 = self._hash_key_6
+            self._cipher2 = self._hash_key_7
+            self._cipher3 = self._aes_key_12
+            self._cipher4 = self._aes_key_64
+            if game == MHP2_JP:
+                self._key = self._mhp2_jp_key
+            elif game == MHP2_NA or game == MHP2_EU:
+                self._key = self._mhp2_na_key
+            elif game == MHP2G_JP:
+                self._key = self._mhp2g_jp_key
+            elif game == MHP2G_NA or game == MHP2G_EU:
+                self._key = self._mhp2g_na_key
+            elif game == MHP3_JP:
+                self._key = self._mhp3_jp_key
         else:
             raise ValueError('Invalid game selected.')
 
@@ -432,12 +465,11 @@ class PSPSavedataCipher:
         buff -- Data read from an encrypted PSP save file
 
         """
-        static_key = b'\xeer\xa1\xf5zE\xab[*/\xcc\xf7\x1a3v6'
-        buff = buff[:-16] + bytes([buff[i-16] ^ static_key[i] for i in range(16)])
-        aes = self._AES.new(self._aes_key_10, self._AES.MODE_CBC, bytes(16))
+        buff = buff[:-16] + bytes([buff[i-16] ^ self._hash3[i] for i in range(16)])
+        aes = self._AES.new(self._hash2, self._AES.MODE_CBC, bytes(16))
         buff = aes.encrypt(buff)
-        buff = [buff[i-16] ^ self._hash_key_5[i] ^ self._key[i] for i in range(16)]
-        aes = self._AES.new(self._aes_key_10, self._AES.MODE_CBC, bytes(16))
+        buff = [buff[i-16] ^ self._hash1[i] ^ self._key[i] for i in range(16)]
+        aes = self._AES.new(self._hash2, self._AES.MODE_CBC, bytes(16))
         return aes.encrypt(bytes(buff))
 
     def encrypt(self, buff):
@@ -453,15 +485,15 @@ class PSPSavedataCipher:
         for i in range(1, len(buff) // 16 + 1):
             xor_buff.extend(xor_key[:12])
             xor_buff.extend(array.array('I', [i]).tobytes())
-        aes = self._AES.new(self._aes_key_64, self._AES.MODE_CBC, bytes(16))
+        aes = self._AES.new(self._cipher4, self._AES.MODE_CBC, bytes(16))
         xor_buff = aes.decrypt(bytes(xor_buff))
         buff = bytearray(buff)
         for i in range(len(buff)):
             buff[i] ^= xor_buff[i]
-        xor_key = [xor_key[i] ^ self._hash_key_6[i] for i in range(12)] + xor_key[12:]
-        aes = self._AES.new(self._aes_key_12, self._AES.MODE_CBC, bytes(16))
+        xor_key = [xor_key[i] ^ self._cipher1[i] for i in range(12)] + xor_key[12:]
+        aes = self._AES.new(self._cipher3, self._AES.MODE_CBC, bytes(16))
         xor_key = aes.encrypt(bytes(xor_key))
-        xor_key = [xor_key[i] ^ self._hash_key_7[i] ^ self._key[i] for i in range(16)]
+        xor_key = [xor_key[i] ^ self._cipher2[i] ^ self._key[i] for i in range(16)]
         return bytes(xor_key) + bytes(buff)
 
     def decrypt(self, buff):
@@ -472,15 +504,15 @@ class PSPSavedataCipher:
         buff -- Data read from an encrypted PSP save file
 
         """
-        xor_key = [buff[i] ^ self._hash_key_7[i] ^ self._key[i] for i in range(16)]
-        aes = self._AES.new(self._aes_key_12, self._AES.MODE_CBC, bytes(16))
+        xor_key = [buff[i] ^ self._cipher2[i] ^ self._key[i] for i in range(16)]
+        aes = self._AES.new(self._cipher3, self._AES.MODE_CBC, bytes(16))
         xor_key = aes.decrypt(bytes(xor_key))
-        xor_key = [xor_key[i] ^ self._hash_key_6[i] for i in range(12)]
+        xor_key = [xor_key[i] ^ self._cipher1[i] for i in range(12)]
         xor_buff = bytearray()
         for i in range(1, len(buff) // 16):
             xor_buff.extend(xor_key)
             xor_buff.extend(array.array('I', [i]).tobytes())
-        aes = self._AES.new(self._aes_key_64, self._AES.MODE_CBC, bytes(16))
+        aes = self._AES.new(self._cipher4, self._AES.MODE_CBC, bytes(16))
         xor_buff = aes.decrypt(bytes(xor_buff))
         buff = bytearray(buff[16:])
         for i in range(len(buff)):
