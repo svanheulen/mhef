@@ -20,6 +20,9 @@ This module provides the various encryption functions used in Monster Hunter
 games for the Playstation Portable.
 
 Constants:
+MHP_JP -- Identifier for Monster Hunter Portable (ULJM-05066)
+MHP_NA -- Identifier for Monster Hunter Freedom (ULUS-10084)
+MHP_EU -- Identifier for Monster Hunter Freedom (ULES-00318)
 MHP2_JP -- Identifier for Monster Hunter Portable 2nd (ULJM-05156)
 MHP2_NA -- Identifier for Monster Hunter Freedom 2 (ULUS-10266)
 MHP2_EU -- Identifier for Monster Hunter Freedom 2 (ULES-00851)
@@ -33,6 +36,7 @@ DataCipher -- Cipher for Monster Hunter data files
 SavedataCipher -- Cipher for Monster Hunter save files
 PSPSavedataCipher -- Cipher for Playstation Portable save files
 QuestCiper -- Cipher for Monster Hunter quest files
+BonusCipher -- Cipher for Monster Hunter bonus files
 
 """
 
@@ -40,6 +44,7 @@ import array
 import hashlib
 import os
 import random
+import struct
 
 
 MHP_JP = -3
@@ -122,7 +127,7 @@ class DataCipher:
 
     def _init_key(self, seed):
         # Initialize the XOR cipher key using a seed
-        self._key[0] = seed >> 16;
+        self._key[0] = seed >> 16
         if self._key[0] == 0:
             self._key[0] = self._key_default[0]
         self._key[1] = seed & 0xffff
@@ -701,4 +706,147 @@ class QuestCipher:
             buff = quest.read()
             out.write(self.decrypt(buff))
             return self.csum(buff)
+
+class BonusCipher:
+    """
+    Cipher for Monster Hunter bonus files.
+
+    This class provides encryption functions for bonus files downloaded from
+    the DLC websites of the 3rd version of Monster Hunter.
+
+    Methods:
+    bits_to_buff -- Convert a bonus bit field to a byte field
+    buff_to_bits -- Convert a bonus byte field to a bit field
+    encrypt -- Return an encrypted copy of the given bonus file data
+    decrypt -- Return a decrypted copy of the given bonus file data
+    encrypt_file -- Save an encrypted copy of the given bonus file
+    decrypt_file -- Save a decrypted copy of the given bonus file
+
+    """
+
+    _mhp3_key1 = b'd\x1e\x85b'
+    _mhp3_key2 = b'\x95\x86'
+    _mhp3_header = b'MHP3rd Bonus'
+    _mhp3_bytemask = b'Ly\x1dV\xeb\xbc,\xea\x92\xf7\xd7s\x9b\x86\xa6\xe7\xa9K\x1f\xf4\xf3ix\x89\xc8X\xe3<5\xf8\xc3\xe9}?\xc9\x9e'
+
+    def __init__(self, game):
+        """
+        Initialize the cipher for the given game.
+
+        Arguments:
+        game -- Identifier of a version of Monster Hunter
+
+        """
+        # Select keys, header and byte mask to use
+        if game == MHP3_JP:
+            self._key1 = self._mhp3_key1
+            self._key2 = self._mhp3_key2
+            self._header = self._mhp3_header
+            self._bytemask = self._mhp3_bytemask
+        else:
+            raise ValueError('Invalid game selected.')
+
+    def bits_to_buff(self, bits):
+        """
+        Convert a bonus bit field to a byte field.
+
+        Arguments:
+        bits -- Identifier of a version of Monster Hunter
+
+        """
+        buff = bytearray(len(self._bytemask))
+        for i in range(len(self._bytemask)):
+            if bits & 1 == 1:
+                buff[i] = self._bytemask[i]
+            else:
+                buff[i] = self._bytemask[i] ^ 0xff
+            bits >>= 1
+        return bytes(buff)
+
+    def buff_to_bits(self, buff):
+        """
+        Convert a bonus byte field to a bit field.
+
+        Arguments:
+        buff -- Identifier of a version of Monster Hunter
+
+        """
+        bits = 0
+        for i in range(len(self._bytemask)):
+            if buff[i] == self._bytemask[i]:
+                bits += 1 << i
+        return bits
+
+    def encrypt(self, buff):
+        """
+        Return an encrypted copy of the given bonus file data.
+
+        Arguments:
+        buff -- Data read from a decrypted bonus file
+
+        """
+        if len(buff) != len(self._bytemask):
+            ValueError('Invalid size.')
+        buff = bytearray(buff) + struct.pack('>H', sum(buff) & 0xffff)
+        for i in range(len(buff)):
+            buff[i] ^= self._key2[i%2]
+        buff += struct.pack('>H', sum(buff) & 0xffff)
+        for i in range(len(buff)):
+            buff[i] ^= self._key1[i%4]
+        buff += struct.pack('>H', sum(buff) & 0xffff)
+        return self._header + bytes(buff)
+
+    def decrypt(self, buff):
+        """
+        Return a decrypted copy of the given bonus file data.
+
+        Arguments:
+        buff -- Data read from an encrypted bonus file
+
+        """
+        if len(buff) != (len(self._header) + len(self._bytemask) + 6):
+            ValueError('Invalid size.')
+        if not buff.startswith(self._header):
+            ValueError('Invalid header.')
+        csum = struct.unpack('>H', buff[-2:])[0]
+        buff = bytearray(buff[len(self._header):-2])
+        if csum != (sum(buff) & 0xffff):
+            ValueError('Invalid stage 1 checksum.')
+        for i in range(len(buff)):
+            buff[i] ^= self._key1[i%4]
+        csum = struct.unpack('>H', buff[-2:])[0]
+        buff = buff[:-2]
+        if csum != (sum(buff) & 0xffff):
+            ValueError('Invalid stage 2 checksum.')
+        for i in range(len(buff)):
+            buff[i] ^= self._key2[i%2]
+        csum = struct.unpack('>H', buff[-2:])[0]
+        buff = buff[:-2]
+        if csum != (sum(buff) & 0xffff):
+            ValueError('Invalid stage 3 checksum.')
+        return bytes(buff)
+
+    def encrypt_file(self, bonus_file, out_file):
+        """
+        Save an encrypted copy of the given bonus file.
+
+        Arguments:
+        bonus_file -- Path to a decrypted bonus file
+        out_file -- Path to save the encrypted quest file
+
+        """
+        with open(bonus_file, 'rb') as bonus, open(out_file, 'wb') as out:
+            out.write(self.encrypt(bonus.read()))
+
+    def decrypt_file(self, bonus_file, out_file):
+        """
+        Save a decrypted copy of the given bonus file.
+
+        Arguments:
+        bonus_file -- Path to an encrypted bonus file
+        out_file -- Path to save the decrypted bonus file
+
+        """
+        with open(bonus_file, 'rb') as bonus, open(out_file, 'wb') as out:
+            out.write(self.decrypt(bonus.read()))
 
