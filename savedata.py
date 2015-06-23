@@ -18,7 +18,7 @@
 import argparse
 import binascii
 
-import mhef
+import mhef.psp
 
 
 parser = argparse.ArgumentParser(description='Encrypts or decrypts a savedata file from Monster Hunter')
@@ -28,34 +28,34 @@ parser.add_argument('inputfile', help='savedata input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-game = mhef.MHP3_JP
+game = mhef.psp.MHP3_JP
 if args.game == '1_JP':
-    game = mhef.MHP_JP
+    game = mhef.psp.MHP_JP
 elif args.game == '1_NA':
-    game = mhef.MHP_NA
+    game = mhef.psp.MHP_NA
 elif args.game == '1_EU':
-    game = mhef.MHP_EU
+    game = mhef.psp.MHP_EU
 elif args.game == '2G_JP':
-    game = mhef.MHP2G_JP
+    game = mhef.psp.MHP2G_JP
 elif args.game == '2G_NA':
-    game = mhef.MHP2G_NA
+    game = mhef.psp.MHP2G_NA
 elif args.game == '2G_EU':
-    game = mhef.MHP2G_EU
+    game = mhef.psp.MHP2G_EU
 elif args.game == '2_JP':
-    game = mhef.MHP2_JP
+    game = mhef.psp.MHP2_JP
 elif args.game == '2_NA':
-    game = mhef.MHP2_NA
+    game = mhef.psp.MHP2_NA
 elif args.game == '2_EU':
-    game = mhef.MHP2_EU
+    game = mhef.psp.MHP2_EU
 
 temp = open(args.inputfile, 'rb').read()
-psc = mhef.PSPSavedataCipher(game)
+psc = mhef.psp.PSPSavedataCipher(game)
 if args.mode == 'd':
     print('hash:', binascii.hexlify(psc.hash(temp)).decode())
     temp = psc.decrypt(temp)
 
-if game >= mhef.MHP2G_JP:
-    sc = mhef.SavedataCipher(game)
+if game >= mhef.psp.MHP2G_JP:
+    sc = mhef.psp.SavedataCipher(game)
     if args.mode == 'e':
         temp = sc.encrypt(temp)
     else:

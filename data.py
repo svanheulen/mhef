@@ -17,7 +17,7 @@
 
 import argparse
 
-import mhef
+import mhef.psp
 
 
 parser = argparse.ArgumentParser(description='Encrypts or decrypts the DATA.BIN file from Monster Hunter 3rd or 2nd G')
@@ -27,15 +27,15 @@ parser.add_argument('inputfile', help='DATA.BIN input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-game = mhef.MHP3_JP
+game = mhef.psp.MHP3_JP
 if args.game == '2G_JP':
-    game = mhef.MHP2G_JP
+    game = mhef.psp.MHP2G_JP
 elif args.game == '2G_NA':
-    game = mhef.MHP2G_NA
+    game = mhef.psp.MHP2G_NA
 elif args.game == '2G_EU':
-    game = mhef.MHP2G_EU
+    game = mhef.psp.MHP2G_EU
 
-dc = mhef.DataCipher(game)
+dc = mhef.psp.DataCipher(game)
 
 if args.mode == 'e':
     dc.encrypt_file(args.inputfile, args.outputfile)
