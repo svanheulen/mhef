@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Copyright 2015 Seth VanHeulen
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,11 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import urllib.request
-import sys
+import argparse
+
+import mhef.n3ds
 
 
-request = urllib.request.Request('http://goshawk.capcom.co.jp/3ds/mh4g_us_/{}'.format(sys.argv[1]), headers={'User-Agent': 'Capcom Browser Services for MonsterHunter_4G'})
-response = urllib.request.urlopen(request)
-open(sys.argv[2], 'wb').write(response.read())
+parser = argparse.ArgumentParser(description='Encrypts or decrypts a DLC file from Monster Hunter 4 Ultimate')
+parser.add_argument('mode', choices=['e', 'd'], help='(e)ncrypt or (d)ecrypt')
+parser.add_argument('inputfile', help='DLC input file')
+parser.add_argument('outputfile', help='output file')
+args = parser.parse_args()
+
+dc = mhef.n3ds.QuestCipher(mhef.n3ds.MH4G_NA)
+
+if args.mode == 'e':
+    dc.encrypt_file(args.inputfile, args.outputfile)
+else:
+    dc.decrypt_file(args.inputfile, args.outputfile)
 
