@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Copyright 2015 Seth VanHeulen
 #
 # This program is free software: you can redistribute it and/or modify

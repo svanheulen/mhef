@@ -26,7 +26,7 @@ parser.add_argument('inputfile', help='DLC input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-dc = mhef.n3ds.QuestCipher(mhef.n3ds.MH4G_NA)
+dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_NA)
 
 if args.mode == 'e':
     dc.encrypt_file(args.inputfile, args.outputfile)
