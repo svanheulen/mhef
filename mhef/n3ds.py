@@ -32,11 +32,9 @@ MH4G_EU = 8
 
 
 class SavedataCipher:
-    _mh4g_na_key = b'blowfish key iorajegqmrna4itjeangmb agmwgtobjteowhv9mope'
-
     def __init__(self, game):
-        if game == MH4G_NA:
-            self._cipher = Blowfish.new(self._mh4g_na_key)
+        if game in (MH4G_JP, MH4G_NA, MH4G_EU):
+            self._cipher = Blowfish.new(b'blowfish key iorajegqmrna4itjeangmb agmwgtobjteowhv9mope')
         else:
             raise ValueError('Ivalid game selected.')
 
@@ -75,20 +73,20 @@ class SavedataCipher:
         return buff
 
     def encrypt_file(self, savedata_file, out_file):
-        with open(savedata_file, 'rb') as dlc, open(out_file, 'wb') as out:
-            out.write(self.encrypt(dlc.read()))
+        savedata = open(savedata_file, 'rb').read()
+        savedata = self.encrypt(savedata)
+        open(out_file, 'wb').write(savedata)
 
     def decrypt_file(self, savedata_file, out_file):
-        with open(savedata_file, 'rb') as dlc, open(out_file, 'wb') as out:
-            out.write(self.decrypt(dlc.read()))
+        savedata = open(savedata_file, 'rb').read()
+        savedata = self.decrypt(savedata)
+        open(out_file, 'wb').write(savedata)
 
 
 class DLCCipher:
-    _mh4g_na_key = b'AgK2DYheaCjyHGPB'
-
     def __init__(self, game):
         if game == MH4G_NA:
-            self._cipher = Blowfish.new(self._mh4g_na_key)
+            self._cipher = Blowfish.new(b'AgK2DYheaCjyHGPB')
         else:
             raise ValueError('Ivalid game selected.')
 
@@ -120,10 +118,12 @@ class DLCCipher:
         return buff
 
     def encrypt_file(self, dlc_file, out_file):
-        with open(dlc_file, 'rb') as dlc, open(out_file, 'wb') as out:
-            out.write(self.encrypt(dlc.read()))
+        dlc = open(dlc_file, 'rb').read()
+        dlc = self.encrypt(dlc)
+        open(out_file, 'wb').write(dlc)
 
     def decrypt_file(self, dlc_file, out_file):
-        with open(dlc_file, 'rb') as dlc, open(out_file, 'wb') as out:
-            out.write(self.decrypt(dlc.read()))
+        dlc = open(dlc_file, 'rb').read()
+        dlc = self.decrypt(dlc)
+        open(out_file, 'wb').write(dlc)
 
