@@ -47,29 +47,29 @@ class SavedataCipher:
                 key = 1
             key = key * 0xb0 % 0xff53
             buff[i] ^= key
-        return buff.tobytes()
+        return buff.tostring()
 
     def encrypt(self, buff):
         csum = sum(buff) & 0xffffffff
         buff = array.array('I', buff)
         buff.insert(0, csum)
         seed = random.getrandbits(16)
-        buff = array.array('I', self._xor(buff.tobytes(), seed))
+        buff = array.array('I', self._xor(buff.tostring(), seed))
         buff.insert(0, (seed << 16) + 0x10)
         buff.byteswap()
-        buff = array.array('I', self._cipher.encrypt(buff.tobytes()))
+        buff = array.array('I', self._cipher.encrypt(buff.tostring()))
         buff.byteswap()
-        return buff.tobytes()
+        return buff.tostring()
 
     def decrypt(self, buff):
         buff = array.array('I', buff)
         buff.byteswap()
-        buff = array.array('I', self._cipher.decrypt(buff.tobytes()))
+        buff = array.array('I', self._cipher.decrypt(buff.tostring()))
         buff.byteswap()
         seed = buff.pop(0) >> 16
-        buff = array.array('I', self._xor(buff.tobytes(), seed))
+        buff = array.array('I', self._xor(buff.tostring(), seed))
         csum = buff.pop(0)
-        buff = buff.tobytes()
+        buff = buff.tostring()
         if csum != (sum(buff) & 0xffffffff):
             raise ValueError('Invalid checksum in header.')
         return buff
@@ -99,10 +99,10 @@ class DLCCipher:
             buff += b'\x00' * (8 - len(buff) % 8)
         buff = array.array('I', buff)
         buff.byteswap()
-        buff = array.array('I', self._cipher.encrypt(buff.tobytes()))
+        buff = array.array('I', self._cipher.encrypt(buff.tostring()))
         buff.append(size)
         buff.byteswap()
-        return buff.tobytes()
+        return buff.tostring()
 
     def decrypt(self, buff):
         buff = array.array('I', buff)
@@ -110,9 +110,9 @@ class DLCCipher:
         size = buff.pop()
         if size > len(buff) * 4:
             raise ValueError('Invalid file size in footer.')
-        buff = array.array('I', self._cipher.decrypt(buff.tobytes()))
+        buff = array.array('I', self._cipher.decrypt(buff.tostring()))
         buff.byteswap()
-        buff = buff.tobytes()[:size]
+        buff = buff.tostring()[:size]
         md = buff[-20:]
         buff = buff[:-20]
         if md != hashlib.sha1(buff).digest():
