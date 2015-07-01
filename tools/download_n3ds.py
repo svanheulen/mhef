@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 # Copyright 2015 Seth VanHeulen
 #
@@ -16,7 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import urllib.request
+try:
+    from urllib.request import Request, urlopen
+except ImportError:
+    from urllib2 import Request, urlopen
 
 
 parser = argparse.ArgumentParser(description='Downloads a file from the Monster Hunter 4 Ultimate DLC website')
@@ -27,7 +30,7 @@ args = parser.parse_args()
 uri = 'http://goshawk.capcom.co.jp/3ds/mh4g_us_/{}'.format(args.remotefile)
 headers = {'User-Agent': 'Capcom Browser Services for MonsterHunter_4G'}
 
-request = urllib.request.Request(uri, headers=headers)
-response = urllib.request.urlopen(request)
+request = Request(uri, headers=headers)
+response = urlopen(request)
 open(args.outputfile, 'wb').write(response.read())
 
