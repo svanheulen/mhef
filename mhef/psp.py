@@ -1,4 +1,4 @@
-# Copyright 2013 Seth VanHeulen
+# Copyright 2013-2015 Seth VanHeulen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -45,6 +45,8 @@ import hashlib
 import os
 import random
 import struct
+
+from Crypto.Cipher import AES
 
 
 MHP_JP = -3
@@ -158,7 +160,7 @@ class DataCipher:
         for i in range(len(buff)):
             buff[i] ^= self._next_key()
         # Apply a substitution cipher to the data using the encode table
-        return buff.tobytes().translate(self._encode_table)
+        return buff.tostring().translate(self._encode_table)
 
     def decrypt(self, buff, lba):
         """
@@ -176,7 +178,7 @@ class DataCipher:
         # Apply an XOR cipher to the data using a new key every 4 bytes
         for i in range(len(buff)):
             buff[i] ^= self._next_key()
-        return buff.tobytes()
+        return buff.tostring()
 
     def encrypt_file(self, data_file, out_file):
         """
@@ -326,7 +328,7 @@ class SavedataCipher(DataCipher):
         seed = random.getrandbits(16)
         # Apply a substitution cipher to the data and encrypt it
         buff = DataCipher.encrypt(self, buff.translate(self._encode_table), seed)
-        seed = array.array('I', [seed]).tobytes()
+        seed = array.array('I', [seed]).tostring()
         # Apply a substitution cipher to the XOR cipher seed and append it to the data
         return buff + seed.translate(self._encode_table).translate(self._encode_table)
 
@@ -425,40 +427,37 @@ class PSPSavedataCipher:
         game -- Identifier of a version of Monster Hunter
 
         """
-        # Import AES cipher
-        crypto = __import__('Crypto.Cipher', fromlist=('AES',))
-        self._AES = crypto.AES
         # Select the cipher key
         if game >= MHP_JP and game <= MHP_EU:
-            self._hash1 = self._hash_key_2
+            self._hash1 = bytearray(self._hash_key_2)
             self._hash2 = self._aes_key_0C
-            self._hash3 = self._aes_key_0C_sub
-            self._cipher1 = self._hash_key_3
-            self._cipher2 = self._hash_key_4
+            self._hash3 = bytearray(self._aes_key_0C_sub)
+            self._cipher1 = bytearray(self._hash_key_3)
+            self._cipher2 = bytearray(self._hash_key_4)
             self._cipher3 = self._aes_key_0E
             self._cipher4 = self._aes_key_57
             if game == MHP_JP or game == MHP_EU:
-                self._key = self._mhp_jp_key
+                self._key = bytearray(self._mhp_jp_key)
             elif game == MHP_NA:
-                self._key = self._mhp_na_key
+                self._key = bytearray(self._mhp_na_key)
         elif game >= MHP2_JP and game <= MHP3_JP:
-            self._hash1 = self._hash_key_5
+            self._hash1 = bytearray(self._hash_key_5)
             self._hash2 = self._aes_key_10
-            self._hash3 = self._aes_key_10_sub
-            self._cipher1 = self._hash_key_6
-            self._cipher2 = self._hash_key_7
+            self._hash3 = bytearray(self._aes_key_10_sub)
+            self._cipher1 = bytearray(self._hash_key_6)
+            self._cipher2 = bytearray(self._hash_key_7)
             self._cipher3 = self._aes_key_12
             self._cipher4 = self._aes_key_64
             if game == MHP2_JP:
-                self._key = self._mhp2_jp_key
+                self._key = bytearray(self._mhp2_jp_key)
             elif game == MHP2_NA or game == MHP2_EU:
-                self._key = self._mhp2_na_key
+                self._key = bytearray(self._mhp2_na_key)
             elif game == MHP2G_JP:
-                self._key = self._mhp2g_jp_key
+                self._key = bytearray(self._mhp2g_jp_key)
             elif game == MHP2G_NA or game == MHP2G_EU:
-                self._key = self._mhp2g_na_key
+                self._key = bytearray(self._mhp2g_na_key)
             elif game == MHP3_JP:
-                self._key = self._mhp3_jp_key
+                self._key = bytearray(self._mhp3_jp_key)
         else:
             raise ValueError('Invalid game selected.')
 
@@ -470,11 +469,14 @@ class PSPSavedataCipher:
         buff -- Data read from an encrypted PSP save file
 
         """
-        buff = buff[:-16] + bytes([buff[i-16] ^ self._hash3[i] for i in range(16)])
-        aes = self._AES.new(self._hash2, self._AES.MODE_CBC, bytes(16))
-        buff = aes.encrypt(buff)
-        buff = [buff[i-16] ^ self._hash1[i] ^ self._key[i] for i in range(16)]
-        aes = self._AES.new(self._hash2, self._AES.MODE_CBC, bytes(16))
+        buff = bytearray(buff)
+        for i in range(16):
+            buff[i-16] ^= self._hash3[i]
+        aes = AES.new(self._hash2, AES.MODE_CBC, b'\x00' * 16)
+        buff = bytearray(aes.encrypt(bytes(buff))[-16:])
+        for i in range(16):
+            buff[i] ^= self._hash1[i] ^ self._key[i]
+        aes = AES.new(self._hash2, AES.MODE_CBC, b'\x00' * 16)
         return aes.encrypt(bytes(buff))
 
     def encrypt(self, buff):
@@ -485,20 +487,22 @@ class PSPSavedataCipher:
         buff -- Data read from a decrypted PSP save file
 
         """
-        xor_key = list(os.urandom(16))
+        xor_key = bytearray(os.urandom(16))
         xor_buff = bytearray()
         for i in range(1, len(buff) // 16 + 1):
             xor_buff.extend(xor_key[:12])
-            xor_buff.extend(array.array('I', [i]).tobytes())
-        aes = self._AES.new(self._cipher4, self._AES.MODE_CBC, bytes(16))
+            xor_buff.extend(array.array('I', [i]).tostring())
+        aes = AES.new(self._cipher4, AES.MODE_CBC, b'\x00' * 16)
         xor_buff = aes.decrypt(bytes(xor_buff))
         buff = bytearray(buff)
         for i in range(len(buff)):
             buff[i] ^= xor_buff[i]
-        xor_key = [xor_key[i] ^ self._cipher1[i] for i in range(12)] + xor_key[12:]
-        aes = self._AES.new(self._cipher3, self._AES.MODE_CBC, bytes(16))
-        xor_key = aes.encrypt(bytes(xor_key))
-        xor_key = [xor_key[i] ^ self._cipher2[i] ^ self._key[i] for i in range(16)]
+        for i in range(12):
+            xor_key[i] ^= self._cipher1[i]
+        aes = AES.new(self._cipher3, AES.MODE_CBC, b'\x00' * 16)
+        xor_key = bytearray(aes.encrypt(bytes(xor_key)))
+        for i in range(16):
+            xor_key[i] ^= self._cipher2[i] ^ self._key[i]
         return bytes(xor_key) + bytes(buff)
 
     def decrypt(self, buff):
@@ -509,16 +513,19 @@ class PSPSavedataCipher:
         buff -- Data read from an encrypted PSP save file
 
         """
-        xor_key = [buff[i] ^ self._cipher2[i] ^ self._key[i] for i in range(16)]
-        aes = self._AES.new(self._cipher3, self._AES.MODE_CBC, bytes(16))
-        xor_key = aes.decrypt(bytes(xor_key))
-        xor_key = [xor_key[i] ^ self._cipher1[i] for i in range(12)]
+        xor_key = bytearray(buff[:16])
+        for i in range(16):
+            xor_key[i] ^= self._cipher2[i] ^ self._key[i]
+        aes = AES.new(self._cipher3, AES.MODE_CBC, b'\x00' * 16)
+        xor_key = bytearray(aes.decrypt(bytes(xor_key))[:12])
+        for i in range(12):
+            xor_key[i] ^= self._cipher1[i]
         xor_buff = bytearray()
         for i in range(1, len(buff) // 16):
             xor_buff.extend(xor_key)
-            xor_buff.extend(array.array('I', [i]).tobytes())
-        aes = self._AES.new(self._cipher4, self._AES.MODE_CBC, bytes(16))
-        xor_buff = aes.decrypt(bytes(xor_buff))
+            xor_buff.extend(array.array('I', [i]).tostring())
+        aes = AES.new(self._cipher4, AES.MODE_CBC, b'\x00' * 16)
+        xor_buff = bytearray(aes.decrypt(bytes(xor_buff)))
         buff = bytearray(buff[16:])
         for i in range(len(buff)):
             buff[i] ^= xor_buff[i]
@@ -622,7 +629,7 @@ class QuestCipher:
         buff -- Data read from an encrypted quest file
 
         """
-        return sum(buff) & 0xffff
+        return sum(bytearray(buff)) & 0xffff
 
     def encrypt(self, buff):
         """
@@ -632,7 +639,7 @@ class QuestCipher:
         buff -- Data read from a decrypted quest file
 
         """
-        size = array.array('I', [len(buff)]).tobytes()
+        size = array.array('I', [len(buff)]).tostring()
         # Hash the unencrypted data with the salt
         md = hashlib.sha1(buff + self._hash_salt).digest()
         # Add the size and hash to the start of the data
@@ -648,7 +655,7 @@ class QuestCipher:
         # Add the XOR cipher seeds to the start of the data
         for i in range(4):
             buff.insert(0, seed[i])
-        return buff.tobytes()
+        return buff.tostring()
 
     def decrypt(self, buff):
         """
@@ -665,7 +672,7 @@ class QuestCipher:
         # Apply an XOR cipher to the data using a new key every 2 bytes
         for i in range(len(buff)):
             buff[i] ^= self._next_key(i%4)
-        buff = buff.tobytes()
+        buff = buff.tostring()
         # Get the size from the start of the data
         size = array.array('I', buff[:4])[0]
         # Get the hash from the start of the data
