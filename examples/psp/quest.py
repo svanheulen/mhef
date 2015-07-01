@@ -39,5 +39,5 @@ if args.mode == 'e':
     csum = qc.encrypt_file(args.inputfile, args.outputfile)
 else:
     csum = qc.decrypt_file(args.inputfile, args.outputfile)
-print('csum:', csum)
+print('csum: {}'.format(csum))
 

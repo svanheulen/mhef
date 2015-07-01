@@ -51,7 +51,7 @@ elif args.game == '2_EU':
 temp = open(args.inputfile, 'rb').read()
 psc = mhef.psp.PSPSavedataCipher(game)
 if args.mode == 'd':
-    print('hash:', binascii.hexlify(psc.hash(temp)).decode())
+    print('hash: {}'.format(binascii.hexlify(psc.hash(temp)).decode()))
     temp = psc.decrypt(temp)
 
 if game >= mhef.psp.MHP2G_JP:
@@ -63,7 +63,7 @@ if game >= mhef.psp.MHP2G_JP:
 
 if args.mode == 'e':
     temp = psc.encrypt(temp)
-    print('hash:', binascii.hexlify(psc.hash(temp)).decode())
+    print('hash: {}'.format(binascii.hexlify(psc.hash(temp)).decode()))
 
 open(args.outputfile, 'wb').write(temp)
 
