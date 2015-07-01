@@ -493,7 +493,7 @@ class PSPSavedataCipher:
             xor_buff.extend(xor_key[:12])
             xor_buff.extend(array.array('I', [i]).tostring())
         aes = AES.new(self._cipher4, AES.MODE_CBC, b'\x00' * 16)
-        xor_buff = aes.decrypt(bytes(xor_buff))
+        xor_buff = bytearray(aes.decrypt(bytes(xor_buff)))
         buff = bytearray(buff)
         for i in range(len(buff)):
             buff[i] ^= xor_buff[i]
