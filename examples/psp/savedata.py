@@ -1,6 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
-# Copyright 2013 Seth VanHeulen
+# Copyright 2013-2015 Seth VanHeulen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 
 import argparse
 import binascii
+from __future__ import print_function
 
 import mhef.psp
 
@@ -51,7 +52,7 @@ elif args.game == '2_EU':
 temp = open(args.inputfile, 'rb').read()
 psc = mhef.psp.PSPSavedataCipher(game)
 if args.mode == 'd':
-    print('hash: {}'.format(binascii.hexlify(psc.hash(temp)).decode()))
+    print('hash:', binascii.hexlify(psc.hash(temp)).decode())
     temp = psc.decrypt(temp)
 
 if game >= mhef.psp.MHP2G_JP:
@@ -63,7 +64,7 @@ if game >= mhef.psp.MHP2G_JP:
 
 if args.mode == 'e':
     temp = psc.encrypt(temp)
-    print('hash: {}'.format(binascii.hexlify(psc.hash(temp)).decode()))
+    print('hash:', binascii.hexlify(psc.hash(temp)).decode())
 
 open(args.outputfile, 'wb').write(temp)
 

@@ -1,6 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
-# Copyright 2013 Seth VanHeulen
+# Copyright 2013-2015 Seth VanHeulen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+from __future__ import print_function
 
 import mhef.psp
 
@@ -39,5 +40,5 @@ if args.mode == 'e':
     csum = qc.encrypt_file(args.inputfile, args.outputfile)
 else:
     csum = qc.decrypt_file(args.inputfile, args.outputfile)
-print('csum: {}'.format(csum))
+print('csum:', csum)
 
