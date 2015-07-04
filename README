@@ -1,22 +1,32 @@
-This module and example scripts provide the various encryption functions used
-in Monster Hunter games for the Playstation Portable.
+This package and example scripts provide the various encryption functions used
+in Monster Hunter games for the Playstation Portable and Nintendo 3DS.
 
 You can report issues, get the latest version, and view the source at:
   http://github.com/svanheulen/mhef
 
-The mhef module and example scripts require Python 3.x
+The mhef package and example scripts work with Python 2.x and 3.x
 
-The data.py example script can be used to decrypt or encrypt the main DATA.BIN
-file stored on the UMD of Monster Hunter Portable 3rd or 2nd G. It also gives
-an example of how to use the DataCipher class in the mhef module.
+They also require the PyCrypto module:
+  https://www.dlitz.net/software/pycrypto/
+Windows builds of PyCrypto are available here:
+  http://www.voidspace.org.uk/python/modules.shtml#pycrypto
 
-The savedata.py example script can be used to decrypt or encrypt a save file
-from Monster Hunter Portable 3rd, 2nd G or 2nd. It also gives an example of how
-to use the PSPSavedataCipher and SavedataCipher classes in the mhef module.
+You can install the package like this:
+  python setup.py install
 
-The quest.py example script can be used to decrypt or encrypt a quest file
-downloaded from the Monster Hunter Portable 3rd or 2nd G DLC website. It also
-gives an example of how to use the QuestCipher class in the mhef module.
+The example scripts in the examples folder show how to use each of the encryption classes.
 
-The download.py script can be used to download files from any of the Monster
-Hunter Portable DLC websites.
+The download scripts in the tools folder can be used to download the encrypted
+DLC files from the DLC servers.
+
+The DLC servers for PSP games uses normal HTML pages and the index page is
+called "DL_TOP.PHP". The pages themselves will be in plain text but the quest
+files will be encrypted.
+
+The DLC servers for the 3DS use text files that don't really provide obvious
+links to each other. Every file on the 3DS DLC servers is encrypted. It's
+easiest start with the file called "DLC_EventQuestInfo_eng.txt", which will
+list the IDs for the event quest files. The 60xxx number is the ID which you
+can use to find the encrypted quest file. For instance if the ID is 60001 you
+would want to download the file called "m60001.mib"
+
