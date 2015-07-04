@@ -1,6 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
-# Copyright 2013 Seth VanHeulen
+# Copyright 2015 Seth VanHeulen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,27 +17,19 @@
 
 import argparse
 
-import mhef
+import mhef.n3ds
 
 
-parser = argparse.ArgumentParser(description='Encrypts or decrypts a quest file from Monster Hunter 3rd or 2nd G')
+parser = argparse.ArgumentParser(description='Encrypts or decrypts a savedata file from Monster Hunter 4 Ultimate')
 parser.add_argument('mode', choices=['e', 'd'], help='(e)ncrypt or (d)ecrypt')
-parser.add_argument('game', choices=['3', '2G_JP', '2G_NA', '2G_EU'], help='version of Monster Hunter')
-parser.add_argument('inputfile', help='quest input file')
+parser.add_argument('inputfile', help='savedata input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-game = mhef.MHP3_JP
-if args.game == '2G_JP':
-    game = mhef.MHP2G_JP
-elif args.game == '2G_NA' or args.game == '2G_EU':
-    game = mhef.MHP2G_NA
-
-qc = mhef.QuestCipher(game)
+sc = mhef.n3ds.SavedataCipher(mhef.n3ds.MH4G_NA)
 
 if args.mode == 'e':
-    csum = qc.encrypt_file(args.inputfile, args.outputfile)
+    sc.encrypt_file(args.inputfile, args.outputfile)
 else:
-    csum = qc.decrypt_file(args.inputfile, args.outputfile)
-print('csum:', csum)
+    sc.decrypt_file(args.inputfile, args.outputfile)
 

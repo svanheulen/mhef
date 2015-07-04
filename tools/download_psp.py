@@ -1,6 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
-# Copyright 2012,2013 Seth VanHeulen
+# Copyright 2012-2015 Seth VanHeulen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-import urllib.request
+try:
+    from urllib.request import Request, urlopen
+except ImportError:
+    from urllib2 import Request, urlopen
 
 
 parser = argparse.ArgumentParser(description='Downloads a file from the Monster Hunter DLC websites (hint: the index page is DL_TOP.PHP)')
@@ -58,7 +61,7 @@ elif args.remotefile.startswith('BONUS/'):
 elif args.remotefile.startswith('NOSSL/QUEST/'):
     headers['Referer'] = uri + 'NOSSL/DL_MENU1.HTM'
 
-request = urllib.request.Request(uri + args.remotefile, b'', headers)
-response = urllib.request.urlopen(request)
+request = Request(uri + args.remotefile, b'', headers)
+response = urlopen(request)
 open(args.outputfile, 'wb').write(response.read())
 
