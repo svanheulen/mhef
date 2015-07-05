@@ -48,7 +48,7 @@ class SavedataCipher:
         return buff.tostring()
 
     def encrypt(self, buff):
-        csum = sum(buff) & 0xffffffff
+        csum = sum(bytearray(buff)) & 0xffffffff
         buff = array.array('I', buff)
         buff.insert(0, csum)
         seed = random.getrandbits(16)
@@ -68,7 +68,7 @@ class SavedataCipher:
         buff = array.array('I', self._xor(buff.tostring(), seed))
         csum = buff.pop(0)
         buff = buff.tostring()
-        if csum != (sum(buff) & 0xffffffff):
+        if csum != (sum(bytearray(buff)) & 0xffffffff):
             raise ValueError('Invalid checksum in header.')
         return buff
 
