@@ -85,7 +85,7 @@ class SavedataCipher:
 
 class DLCCipher:
     def __init__(self, game):
-        if game == MH4G_NA:
+        if game == MH4G_NA or game == MH4G_EU:
             self._cipher = Blowfish.new(b'AgK2DYheaCjyHGPB')
         else:
             raise ValueError('Ivalid game selected.')
