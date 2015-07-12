@@ -14,7 +14,8 @@ Windows builds of PyCrypto are available here:
 You can install the package like this:
   python setup.py install
 
-The example scripts in the examples folder show how to use each of the encryption classes.
+The example scripts in the examples folder show how to use each of the
+encryption classes.
 
 The download scripts in the tools folder can be used to download the encrypted
 DLC files from the DLC servers.
