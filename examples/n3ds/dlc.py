@@ -22,11 +22,18 @@ import mhef.n3ds
 
 parser = argparse.ArgumentParser(description='Encrypts or decrypts a DLC file from Monster Hunter 4 Ultimate')
 parser.add_argument('mode', choices=['e', 'd'], help='(e)ncrypt or (d)ecrypt')
+parser.add_argument('region', choices=('JPN', 'USA', 'EUR'), help='game region')
 parser.add_argument('inputfile', help='DLC input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_NA)
+region = mhef.n3ds.MH4G_JP
+if args.region == 'USA':
+    region = mhef.n3ds.MH4G_NA
+elif args.region == 'EUR':
+    region = mhef.n3ds.MH4G_EU
+
+dc = mhef.n3ds.DLCCipher(region)
 
 if args.mode == 'e':
     dc.encrypt_file(args.inputfile, args.outputfile)

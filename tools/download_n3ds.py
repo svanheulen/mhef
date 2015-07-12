@@ -23,11 +23,16 @@ except ImportError:
 
 
 parser = argparse.ArgumentParser(description='Downloads a file from the Monster Hunter 4 Ultimate DLC website')
+parser.add_argument('region', choices=('JPN', 'USA', 'EUR'), help='game region')
 parser.add_argument('remotefile', help='remote file to download')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-uri = 'http://goshawk.capcom.co.jp/3ds/mh4g_us_/{}'.format(args.remotefile)
+uri = 'http://goshawk.capcom.co.jp/3ds/mh4g_nihon/{}'.format(args.remotefile)
+if args.region == 'USA':
+    uri = 'http://goshawk.capcom.co.jp/3ds/mh4g_us_/{}'.format(args.remotefile)
+elif args.region == 'EUR':
+    uri = 'http://goshawk.capcom.co.jp/3ds/mh4g_eu_/{}'.format(args.remotefile)
 headers = {'User-Agent': 'Capcom Browser Services for MonsterHunter_4G'}
 
 request = Request(uri, headers=headers)
