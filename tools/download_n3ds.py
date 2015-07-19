@@ -36,7 +36,7 @@ elif args.region == 'EUR':
 elif args.region == 'KOR':
     uri = 'http://goshawk.capcom.co.jp/3ds/mh4g_kr_/{}'.format(args.remotefile)
 elif args.region == 'TWN':
-    uri = 'http://goshawk.capcom.co.jp/redgiant/dl/pro_tw/{}'.format(args.remotefile)
+    uri = 'http://goshawk4g.capcom.co.jp/redgiant/dl/pro_tw/{}'.format(args.remotefile)
 headers = {'User-Agent': 'Capcom Browser Services for MonsterHunter_4G'}
 
 request = Request(uri, headers=headers)
