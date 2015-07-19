@@ -30,6 +30,7 @@ MH4G_JP = 6
 MH4G_NA = 7
 MH4G_EU = 8
 MH4G_KR = 9
+MH4G_TW = 10
 
 
 class SavedataCipher:
@@ -92,6 +93,8 @@ class DLCCipher:
             self._cipher = Blowfish.new(b'AgK2DYheaCjyHGP8')
         elif game == MH4G_KR:
             self._cipher = Blowfish.new(b'AgK2DYheaOjyHGP8')
+        elif game == MH4G_TW:
+            self._cipher = Blowfish.new(b'Capcom123 ')
         else:
             raise ValueError('Ivalid game selected.')
 
