@@ -35,7 +35,7 @@ MH4G_TW = 10
 
 class SavedataCipher:
     def __init__(self, game):
-        if game in (MH4G_JP, MH4G_NA, MH4G_EU):
+        if game in (MH4G_JP, MH4G_NA, MH4G_EU, MH4G_KR, MH4G_TW):
             self._cipher = Blowfish.new(b'blowfish key iorajegqmrna4itjeangmb agmwgtobjteowhv9mope')
         else:
             raise ValueError('Ivalid game selected.')
