@@ -32,6 +32,10 @@ MH4G_EU = 8
 MH4G_KR = 9
 MH4G_TW = 10
 
+MH4G_SD_NORMAL = 0
+MH4G_SD_CARD = 1
+MH4G_SD_QUEST = 2
+
 
 class SavedataCipher:
     def __init__(self, game):
@@ -49,23 +53,38 @@ class SavedataCipher:
             buff[i] ^= key
         return buff.tostring()
 
-    def encrypt(self, buff):
+    def encrypt(self, buff, type=MH4G_SD_NORMAL):
         csum = sum(bytearray(buff)) & 0xffffffff
         buff = array.array('I', buff)
         buff.insert(0, csum)
         seed = random.getrandbits(16)
         buff = array.array('I', self._xor(buff.tostring(), seed))
         buff.insert(0, (seed << 16) + 0x10)
+        header = buff[:6]
+        if type == MH4G_SD_CARD:
+            buff = buff[6:]
         buff.byteswap()
         buff = array.array('I', self._cipher.encrypt(buff.tostring()))
         buff.byteswap()
-        return buff.tostring()
+        if type == MH4G_SD_CARD:
+            buff = header + buff
+        buff = buff.tostring()
+        if type == MH4G_SD_QUEST:
+            buff += b'\x00' * 0x100
+        return buff
 
-    def decrypt(self, buff):
+    def decrypt(self, buff, type=MH4G_SD_NORMAL):
+        if type == MH4G_SD_QUEST:
+            buff = buff[:-0x100]
         buff = array.array('I', buff)
+        header = buff[:6]
+        if type == MH4G_SD_CARD:
+            buff = buff[6:]
         buff.byteswap()
         buff = array.array('I', self._cipher.decrypt(buff.tostring()))
         buff.byteswap()
+        if type == MH4G_SD_CARD:
+            buff = header + buff
         seed = buff.pop(0) >> 16
         buff = array.array('I', self._xor(buff.tostring(), seed))
         csum = buff.pop(0)
@@ -74,14 +93,14 @@ class SavedataCipher:
             raise ValueError('Invalid checksum in header.')
         return buff
 
-    def encrypt_file(self, savedata_file, out_file):
+    def encrypt_file(self, savedata_file, out_file, type=MH4G_SD_NORMAL):
         savedata = open(savedata_file, 'rb').read()
-        savedata = self.encrypt(savedata)
+        savedata = self.encrypt(savedata, type)
         open(out_file, 'wb').write(savedata)
 
-    def decrypt_file(self, savedata_file, out_file):
+    def decrypt_file(self, savedata_file, out_file, type=MH4G_SD_NORMAL):
         savedata = open(savedata_file, 'rb').read()
-        savedata = self.decrypt(savedata)
+        savedata = self.decrypt(savedata, type)
         open(out_file, 'wb').write(savedata)
 
 
