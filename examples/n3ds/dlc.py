@@ -20,24 +20,26 @@ import argparse
 import mhef.n3ds
 
 
-parser = argparse.ArgumentParser(description='Encrypts or decrypts a DLC file from Monster Hunter 4 Ultimate')
+parser = argparse.ArgumentParser(description='Encrypts or decrypts a DLC file from MH4U and MHX')
 parser.add_argument('mode', choices=['e', 'd'], help='(e)ncrypt or (d)ecrypt')
+parser.add_argument('game', choices=('4G', 'X'), help='game version')
 parser.add_argument('region', choices=('JPN', 'USA', 'EUR', 'KOR', 'TWN'), help='game region')
 parser.add_argument('inputfile', help='DLC input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-region = mhef.n3ds.MH4G_JP
-if args.region == 'USA':
-    region = mhef.n3ds.MH4G_NA
-elif args.region == 'EUR':
-    region = mhef.n3ds.MH4G_EU
-elif args.region == 'KOR':
-    region = mhef.n3ds.MH4G_KR
-elif args.region == 'TWN':
-    region = mhef.n3ds.MH4G_TW
-
-dc = mhef.n3ds.DLCCipher(region)
+dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_JP)
+if args.game == '4G':
+    if args.region == 'USA':
+        dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_NA)
+    elif args.region == 'EUR':
+        dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_EU)
+    elif args.region == 'KOR':
+        dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_KR)
+    elif args.region == 'TWN':
+        dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_TW)
+elif args.game == 'X':
+    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_JP)
 
 if args.mode == 'e':
     dc.encrypt_file(args.inputfile, args.outputfile)
