@@ -15,6 +15,7 @@
 
 import array
 import hashlib
+import math
 import random
 
 from Crypto.Cipher import Blowfish
@@ -31,6 +32,7 @@ MH4G_NA = 7
 MH4G_EU = 8
 MH4G_KR = 9
 MH4G_TW = 10
+MHX_JP = 11
 
 MH4G_SD_NORMAL = 0
 MH4G_SD_CARD = 1
@@ -114,6 +116,8 @@ class DLCCipher:
             self._cipher = Blowfish.new(b'AgK2DYheaOjyHGP8')
         elif game == MH4G_TW:
             self._cipher = Blowfish.new(b'Capcom123 ')
+        elif game == MHX_JP:
+            self._cipher = Blowfish.new(b'Ma5)~&CE/9pCa7#mxT5!W4Hh')
         else:
             raise ValueError('Ivalid game selected.')
 
@@ -153,4 +157,56 @@ class DLCCipher:
         dlc = open(dlc_file, 'rb').read()
         dlc = self.decrypt(dlc)
         open(out_file, 'wb').write(dlc)
+
+
+class DLCXCipher:
+    def __init__(self, game):
+        if game == MHX_JP:
+            self._cipher = Blowfish.new(b'Ma5)~&CE/9pCa7#mxT5!W4Hh')
+        else:
+            raise ValueError('Ivalid game selected.')
+
+    def _gen_xor_buff(self, seed, buff_len):
+        xor_buff = array.array('I')
+        for i in range(int(math.ceil(buff_len/8.0))):
+            xor_buff.extend([seed, i])
+        xor_buff = array.array('I', self._cipher.encrypt(xor_buff.tostring()))
+        xor_buff.byteswap()
+        return bytearray(xor_buff.tostring())
+
+    def encrypt(self, buff):
+        seed = random.getrandbits(32)
+        buff = bytearray(buff)
+        buff.extend(hashlib.sha1(buff).digest())
+        xor_buff = self._gen_xor_buff(seed, len(buff))
+        for i in range(len(buff)):
+            buff[i] ^= xor_buff[i]
+        seed = array.array('I', [seed])
+        seed.byteswap()
+        return bytes(buff) + seed.tostring()
+
+    def decrypt(self, buff):
+        seed = array.array('I', buff[-4:])
+        seed.byteswap()
+        seed = seed[0]
+        buff = bytearray(buff[:-4])
+        xor_buff = self._gen_xor_buff(seed, len(buff))
+        for i in range(len(buff)):
+            buff[i] ^= xor_buff[i]
+        md = buff[-20:]
+        buff = bytes(buff[:-20])
+        if md != hashlib.sha1(buff).digest():
+            raise ValueError('Invalid SHA1 hash in footer.')
+        return buff
+
+    def encrypt_file(self, dlc_file, out_file):
+        dlc = open(dlc_file, 'rb').read()
+        dlc = self.encrypt(dlc)
+        open(out_file, 'wb').write(dlc)
+
+    def decrypt_file(self, dlc_file, out_file):
+        dlc = open(dlc_file, 'rb').read()
+        dlc = self.decrypt(dlc)
+        open(out_file, 'wb').write(dlc)
+
 
