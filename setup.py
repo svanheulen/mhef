@@ -6,7 +6,7 @@ except ImportError:
 
 setup(
     name='mhef',
-    version='1.1.3',
+    version='1.1.4',
     description='Monster Hunter Encryption Functions',
     url='https://github.com/svanheulen/mhef',
     author='Seth VanHeulen',
