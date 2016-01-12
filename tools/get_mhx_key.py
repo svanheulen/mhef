@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import argparse
 import array
 import re
-import sys
 import socket
 import time
 
@@ -93,10 +93,14 @@ class Application:
                 self._send_packet(0, 0)
             time.sleep(1)
 
-app = Application(sys.argv[1])
-if raw_input:
+parser = argparse.ArgumentParser(description='Gets DLC encryption key from MHX using NTR debugger.')
+parser.add_argument('host', help='host name or IP address of your 3DS')
+args = parser.parse_args()
+
+app = Application(args.host)
+try:
     raw_input("enabled the NTR debugger and go to the MHX main title menu, then press enter")
-else:
+except:
     input("enabled the NTR debugger and go to the MHX main title menu, then press enter")
 app.run()
 
