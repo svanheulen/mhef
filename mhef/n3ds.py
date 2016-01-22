@@ -160,7 +160,7 @@ class DLCCipher:
 class DLCXCipher:
     def __init__(self, game):
         if game == MHX_JP:
-            self._cipher = Blowfish.new(b'zCyah0htZv8ssEeh6RMK8wTkDC2m8ksSS6tRPOKQa9KS39wyaHsi0QYE') # 2016-01-19
+            self._cipher = Blowfish.new(b'gP8QNvnQkW98Bu8KvLjKPGp5Y27iyuxLPMvnZGsJjLpmqUMq0yn0ayb2') # 2016-01-22
         else:
             raise ValueError('Ivalid game selected.')
 
