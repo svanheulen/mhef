@@ -81,13 +81,15 @@ class Application:
                 self._process_requested = True
             elif self._process is not None and not self._payload_sent:
                 print('writing hook ...')
-                self._send_packet(0, 10, [self._process, 0xc01e9c, 36], b'\xf0G-\xe9\x00@\xa0\xe1\xeb\xab\xf6\xeb\x08 \x94\xe5\x04\x10\x94\xe5\x04\x00\x9f\xe5p\xeb\xdb\xeb\xf0\x87\xbd\xe8\x00\xce\xe5\x00')
-                self._send_packet(0, 10, [self._process, 0x2488e0, 4], b'm\xe5&\xeb')
+                #self._send_packet(0, 10, [self._process, 0xc01e9c, 36], b'\xf0G-\xe9\x00@\xa0\xe1\xeb\xab\xf6\xeb\x08 \x94\xe5\x04\x10\x94\xe5\x04\x00\x9f\xe5p\xeb\xdb\xeb\xf0\x87\xbd\xe8\x00\xce\xe5\x00')
+                self._send_packet(0, 10, [self._process, 0xc01ffc, 32], b'\xf0G-\xe9\x00@\xa0\xe1\xd7\xad\xf6\xeb\x08 \x94\xe5\x04\x10\x94\xe5\xe5\x08\xa0\xe3\x1a\xeb\xdb\xeb\xf0\x87\xbd\xe8')
+                #self._send_packet(0, 10, [self._process, 0x2488e0, 4], b'm\xe5&\xeb')
+                self._send_packet(0, 10, [self._process, 0x2488e8, 4], b'\xc3\xe5&\xeb')
                 self._send_packet(0, 0)
                 self._payload_sent = True
             elif self._payload_written and self._sequence % 5000 == 0:
                 print('checking for key ...')
-                self._send_packet(0, 9, [self._process, 0xe5ce00, 60])
+                self._send_packet(0, 9, [self._process, 0xe50000, 60])
                 self._send_packet(0, 0)
             else:
                 self._send_packet(0, 0)
