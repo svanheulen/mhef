@@ -31,13 +31,13 @@ args = parser.parse_args()
 dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_JP)
 if args.game == '4G':
     if args.region == 'USA':
-        dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_NA)
+        dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_NA)
     elif args.region == 'EUR':
-        dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_EU)
+        dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_EU)
     elif args.region == 'KOR':
         dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_KR)
     elif args.region == 'TWN':
-        dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_TW)
+        dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_TW)
 elif args.game == 'X':
     dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_JP)
 
