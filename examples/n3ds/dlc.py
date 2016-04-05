@@ -35,7 +35,7 @@ if args.game == '4G':
     elif args.region == 'EUR':
         dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_EU)
     elif args.region == 'KOR':
-        dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_KR)
+        dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_KR)
     elif args.region == 'TWN':
         dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_TW)
 elif args.game == 'X':
