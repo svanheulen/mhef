@@ -186,13 +186,15 @@ class DLCXCipher:
             buff[i] ^= xor_buff[i]
         seed = array.array('I', [seed])
         seed.byteswap()
+        if self._sigs:
+            return bytes(buff) + seed.tostring() + b'\x00' * 0x200
         return bytes(buff) + seed.tostring()
 
     def decrypt(self, buff):
         if self._sigs:
-            static_sig = buff[-256:]
-            download_sig = buff[-512:-256]
-            buff = buff[:-512]
+            static_sig = buff[-0x100:]
+            download_sig = buff[-0x200:-0x100]
+            buff = buff[:-0x200]
         seed = array.array('I', buff[-4:])
         seed.byteswap()
         seed = seed[0]
