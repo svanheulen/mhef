@@ -30,9 +30,9 @@ args = parser.parse_args()
 
 dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_JP, args.key)
 if args.region == 'USA':
-    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_NA, args.key)
+    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_NA, args.key)
 elif args.region == 'EUR':
-    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MH4G_EU, args.key)
+    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_EU, args.key)
 
 if args.mode == 'e':
     dc.encrypt_file(args.inputfile, args.outputfile)
