@@ -34,8 +34,11 @@ if args.region == 'USA':
 elif args.region == 'EUR':
     dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_EU, args.key)
 
-if args.mode == 'e':
-    dc.encrypt_file(args.inputfile, args.outputfile)
-else:
-    dc.decrypt_file(args.inputfile, args.outputfile)
+try:
+    if args.mode == 'e':
+        dc.encrypt_file(args.inputfile, args.outputfile)
+    else:
+        dc.decrypt_file(args.inputfile, args.outputfile)
+except ValueError:
+    print('Error: The file is corrupt, or the Blowfish key is incorrect.')
 

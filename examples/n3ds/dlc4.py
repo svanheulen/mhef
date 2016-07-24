@@ -37,8 +37,11 @@ elif args.region == 'KOR':
 elif args.region == 'TWN':
     dc = mhef.n3ds.DLCCipher(mhef.n3ds.MH4G_TW)
 
-if args.mode == 'e':
-    dc.encrypt_file(args.inputfile, args.outputfile)
-else:
-    dc.decrypt_file(args.inputfile, args.outputfile)
+try:
+    if args.mode == 'e':
+        dc.encrypt_file(args.inputfile, args.outputfile)
+    else:
+        dc.decrypt_file(args.inputfile, args.outputfile)
+except ValueError:
+    print('Error: The file is corrupt, or you selected the wrong region.')
 
