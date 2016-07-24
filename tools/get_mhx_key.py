@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import base64
 import array
 import re
 import socket
@@ -32,6 +33,7 @@ class Application:
         self._object1 = 0
         self._object2 = 0
         self._key = None
+        self._pubkey = None
         self._host = host
 
     def _read_packet(self):
@@ -55,10 +57,24 @@ class Application:
                 self._object1 = array.array('I', packet_data)[0]
             elif self._object2 == 0:
                 self._object2 = array.array('I', packet_data)[0]
-            else:
+            elif self._key is None:
                 self._key = packet_data.decode().strip('\x00')
                 if self._key == '':
                     self._key = None
+                elif self._id == b'0004000000155400':
+                    print('    MHX JPN key = {}'.format(self._key))
+                elif self._id == b'0004000000187000':
+                    print('    MHGen USA key = {}'.format(self._key))
+                elif self._id == b'0004000000185b00':
+                    print('    MHGen EUR key = {}'.format(self._key))
+            elif self._pubkey is None and self._id != b'0004000000155400':
+                self._pubkey = packet_data.strip(b'\x00')
+                if self._pubkey == b'':
+                    self._pubkey = None
+                elif self._id == b'0004000000187000':
+                    print('    MHGen USA pubkey = {}'.format(base64.b64encode(self._pubkey).decode()))
+                elif self._id == b'0004000000185b00':
+                    print('    MHGen EUR pubkey = {}'.format(base64.b64encode(self._pubkey).decode()))
 
     def _send_packet(self, packet_type, command, args=[], data=b''):
         self._sequence += 1000
@@ -75,15 +91,7 @@ class Application:
         self._send_packet(0, 0)
         while True:
             packet = self._read_packet()
-            if self._key is not None:
-                if self._id == b'0004000000155400':
-                    print('    MHX JPN key = {}'.format(self._key))
-                elif self._id == b'0004000000187000':
-                    print('    MHGen USA key = {}'.format(self._key))
-                elif self._id == b'0004000000185b00':
-                    print('    MHGen EUR key = {}'.format(self._key))
-                return
-            elif not self._process_requested:
+            if not self._process_requested:
                 print('getting process ...')
                 self._send_packet(0, 5)
                 self._send_packet(0, 0)
@@ -98,12 +106,17 @@ class Application:
                 elif self._object2 == 0:
                     print('checking for object 2 ...')
                     self._send_packet(0, 9, [self._process, self._object1 + 0x34, 4])
-                else:
+                elif self._key is None:
                     print('checking for key ...')
                     if self._id == b'0004000000155400':
                         self._send_packet(0, 9, [self._process, self._object2 + 0x2a1, 128])
                     else:
                         self._send_packet(0, 9, [self._process, self._object2 + 0x5a0, 128])
+                elif self._pubkey is None and self._id != b'0004000000155400':
+                    print('checking for pubkey ...')
+                    self._send_packet(0, 9, [self._process, self._object2 + 0x6b0, 294])
+                else:
+                    return
                 self._send_packet(0, 0)
             else:
                 self._send_packet(0, 0)

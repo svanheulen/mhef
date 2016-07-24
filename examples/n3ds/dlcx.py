@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import base64
 
 import mhef.n3ds
 
@@ -24,15 +25,16 @@ parser = argparse.ArgumentParser(description='Encrypts or decrypts a DLC file fr
 parser.add_argument('mode', choices=['e', 'd'], help='(e)ncrypt or (d)ecrypt')
 parser.add_argument('region', choices=('JPN', 'USA', 'EUR'), help='game region')
 parser.add_argument('key', help='DLC Blowfish key')
+parser.add_argument('--pubkey', default=None, help='Dynamic DLC public key')
 parser.add_argument('inputfile', help='DLC input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_JP, args.key)
+dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_JP, args.key, base64.b64decode(args.pubkey))
 if args.region == 'USA':
-    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_NA, args.key)
+    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_NA, args.key, base64.b64decode(args.pubkey))
 elif args.region == 'EUR':
-    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_EU, args.key)
+    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_EU, args.key, base64.b64decode(args.pubkey))
 
 try:
     if args.mode == 'e':
@@ -40,5 +42,5 @@ try:
     else:
         dc.decrypt_file(args.inputfile, args.outputfile)
 except ValueError:
-    print('Error: The file is corrupt, or the Blowfish key is incorrect.')
+    print('Error: The file is corrupt, the Blowfish key is incorrect, or the public key is incorrect.')
 

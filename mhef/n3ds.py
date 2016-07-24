@@ -19,6 +19,9 @@ import math
 import random
 
 from Crypto.Cipher import Blowfish
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import SHA256
+from Crypto.PublicKey import RSA
 
 
 MH3G_JP = 0
@@ -160,9 +163,13 @@ class DLCCipher:
 
 
 class DLCXCipher:
-    def __init__(self, game, key):
+    def __init__(self, game, key, pubkey=None):
         self._cipher = Blowfish.new(key.encode())
+        self._pubkey = None
+        if pubkey is not None:
+            self._pubkey = RSA.importKey(pubkey)
         if game == MHX_NA or game == MHX_EU:
+            self._static_pubkey = RSA.importKey(b'0\x82\x01"0\r\x06\t*\x86H\x86\xf7\r\x01\x01\x01\x05\x00\x03\x82\x01\x0f\x000\x82\x01\n\x02\x82\x01\x01\x00\xa9\x88\x82{\xc7\xbeV\xbe\xaa(\x89\xb0\x96\x18\x82\xab\x96U\xb3q\x89\xbd\xff\x83\xbe\x03\x1aJ8s\xce\xe8S\xc9+\xf2N\xfa\xf9\x0c!\xeaj\xf3&\x1e)\x10n[\xf5L\xac\x03\x06\x8c\xddW\xe1\xf80g&\x17/\x0cT\x18\x8e\x1f\xbc\xec\xab\x11\x11/)S\x06\x9c\x05\xa6t\xd2\x8f\x9c\xca\x80\x02yy,\x89\xb02\x16\x91.\xca\xe2\xd3\xcb]z\xab\xa5_\x85\xb9\xe1\xf7v\x1c\x02D\x7fC\x8f\x0c\x1bc\x885{\x1e\xab\xe0AH\x9b\xe5@\xf0n\x01]\x17a\x1f\x82X\xed\'L\xee!\xd2~\xbd\x9eb\x8d\'\x8d\x8c+CH\xd3\xa1\x1d\x03\xcb\x06\x9a\x80\xd7\xf7\x0c,\xfc\x1a=j\xce\xea\xfb\xa0\xeb\r\x022\x93\x7f\xc7x\x164\xf1\'\xe6.\x16|\xefn!\xe2Z\xef\xb7\xb6<:\x8b;\xaf\xd4X\xa1\xb0p\x92\r\x8f\nKg d\xf7\xdb\xb6\xe8\xae\x92,\xa1\xd9\xaa\xa31\xda\xe7\xbc`#-R\xccp\x99|\x1c\xfb\xbf6\x1ck\x8eBj\xb4S\xe9\xfb\x02\x03\x01\x00\x01')
             self._sigs = True
         elif game == MHX_JP:
             self._sigs = False
@@ -192,10 +199,15 @@ class DLCXCipher:
 
     def decrypt(self, buff):
         if self._sigs:
-            # RSA-2048 signature, checked with static pubkey in the game
-            static_sig = buff[-0x100:]
-            # RSA-2048 signature, checked with pubkey sent along with the Blowfish key
-            download_sig = buff[-0x200:-0x100]
+            md = SHA256.new(buff[:-0x100])
+            verifier = PKCS1_v1_5.new(self._static_pubkey)
+            if verifier.verify(md, buff[-0x100:]) == False:
+                raise ValueError('Invalid signature in footer.')
+            if self._pubkey is not None:
+                md = SHA256.new(buff[:-0x200])
+                verifier = PKCS1_v1_5.new(self._pubkey)
+                if verifier.verify(md, buff[-0x200:-0x100]) == False:
+                    raise ValueError('Invalid signature in footer.')
             buff = buff[:-0x200]
         seed = array.array('I', buff[-4:])
         seed.byteswap()
