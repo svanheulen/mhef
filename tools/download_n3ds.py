@@ -43,6 +43,10 @@ if args.game == '4G':
 elif args.game == 'X':
     uri = 'http://spector.capcom.co.jp/3ds/mhx_jp/{}'.format(args.remotefile)
     headers = {'User-Agent': 'Capcom Browser Services for MonsterHunter_X'}
+    if args.region == 'USA':
+        uri = 'http://spector.capcom.co.jp/3ds/mhx_us/{}'.format(args.remotefile)
+    elif args.region == 'EUR':
+        uri = 'http://spector.capcom.co.jp/3ds/mhx_eu/{}'.format(args.remotefile)
 
 request = Request(uri, headers=headers)
 response = urlopen(request)

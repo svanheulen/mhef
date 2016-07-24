@@ -33,6 +33,8 @@ MH4G_EU = 8
 MH4G_KR = 9
 MH4G_TW = 10
 MHX_JP = 11
+MHX_NA = 12
+MHX_EU = 13
 
 MH4G_SD_NORMAL = 0
 MH4G_SD_CARD = 1
@@ -44,7 +46,7 @@ class SavedataCipher:
         if game in (MH4G_JP, MH4G_NA, MH4G_EU, MH4G_KR, MH4G_TW):
             self._cipher = Blowfish.new(b'blowfish key iorajegqmrna4itjeangmb agmwgtobjteowhv9mope')
         else:
-            raise ValueError('Ivalid game selected.')
+            raise ValueError('Invalid game selected.')
 
     def _xor(self, buff, key):
         buff = array.array('H', buff)
@@ -117,7 +119,7 @@ class DLCCipher:
         elif game == MH4G_TW:
             self._cipher = Blowfish.new(b'Capcom123 ')
         else:
-            raise ValueError('Ivalid game selected.')
+            raise ValueError('Invalid game selected.')
 
     def encrypt(self, buff):
         buff += hashlib.sha1(buff).digest()
@@ -158,11 +160,14 @@ class DLCCipher:
 
 
 class DLCXCipher:
-    def __init__(self, game):
-        if game == MHX_JP:
-            self._cipher = Blowfish.new(b'UEGccNzlq5giaqGf4t8o5NAtmGMhMwsaVx9acwaWD2oxml8C7HcnSMGW') # 2016-04-25
+    def __init__(self, game, key):
+        self._cipher = Blowfish.new(key.encode())
+        if game == MHX_NA or game == MHX_EU:
+            self._sigs = True
+        elif game == MHX_JP:
+            self._sigs = False
         else:
-            raise ValueError('Ivalid game selected.')
+            raise ValueError('Invalid game selected.')
 
     def _gen_xor_buff(self, seed, buff_len):
         xor_buff = array.array('I')
@@ -184,6 +189,10 @@ class DLCXCipher:
         return bytes(buff) + seed.tostring()
 
     def decrypt(self, buff):
+        if self._sigs:
+            static_sig = buff[-256:]
+            download_sig = buff[-512:-256]
+            buff = buff[:-512]
         seed = array.array('I', buff[-4:])
         seed.byteswap()
         seed = seed[0]
