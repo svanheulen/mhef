@@ -192,7 +192,9 @@ class DLCXCipher:
 
     def decrypt(self, buff):
         if self._sigs:
+            # RSA-2048 signature, checked with static pubkey in the game
             static_sig = buff[-0x100:]
+            # RSA-2048 signature, checked with pubkey sent along with the Blowfish key
             download_sig = buff[-0x200:-0x100]
             buff = buff[:-0x200]
         seed = array.array('I', buff[-4:])
