@@ -30,11 +30,14 @@ parser.add_argument('inputfile', help='DLC input file')
 parser.add_argument('outputfile', help='output file')
 args = parser.parse_args()
 
-dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_JP, args.key, base64.b64decode(args.pubkey))
+if args.pubkey:
+    args.pubkey = base64.b64decode(args.pubkey)
+
+dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_JP, args.key, args.pubkey)
 if args.region == 'USA':
-    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_NA, args.key, base64.b64decode(args.pubkey))
+    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_NA, args.key, args.pubkey)
 elif args.region == 'EUR':
-    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_EU, args.key, base64.b64decode(args.pubkey))
+    dc = mhef.n3ds.DLCXCipher(mhef.n3ds.MHX_EU, args.key, args.pubkey)
 
 try:
     if args.mode == 'e':
