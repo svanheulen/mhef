@@ -45,6 +45,8 @@ class SavedataCipher:
     def __init__(self, game):
         if game in (MH4G_JP, MH4G_NA, MH4G_EU, MH4G_KR, MH4G_TW):
             self._cipher = Blowfish.new(b'blowfish key iorajegqmrna4itjeangmb agmwgtobjteowhv9mope')
+        elif game == MH4_JP:
+            self._cipher = None
         else:
             raise ValueError('Invalid game selected.')
 
@@ -67,9 +69,10 @@ class SavedataCipher:
         header = buff[:6]
         if type == MH4G_SD_CARD:
             buff = buff[6:]
-        buff.byteswap()
-        buff = array.array('I', self._cipher.encrypt(buff.tostring()))
-        buff.byteswap()
+        if self._cipher:
+            buff.byteswap()
+            buff = array.array('I', self._cipher.encrypt(buff.tostring()))
+            buff.byteswap()
         if type == MH4G_SD_CARD:
             buff = header + buff
         buff = buff.tostring()
@@ -84,9 +87,10 @@ class SavedataCipher:
         header = buff[:6]
         if type == MH4G_SD_CARD:
             buff = buff[6:]
-        buff.byteswap()
-        buff = array.array('I', self._cipher.decrypt(buff.tostring()))
-        buff.byteswap()
+        if self._cipher:
+            buff.byteswap()
+            buff = array.array('I', self._cipher.decrypt(buff.tostring()))
+            buff.byteswap()
         if type == MH4G_SD_CARD:
             buff = header + buff
         seed = buff.pop(0) >> 16
