@@ -19,6 +19,7 @@ import math
 import random
 
 from Crypto.Cipher import Blowfish
+from Crypto.Util import Counter
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
@@ -168,7 +169,7 @@ class DLCCipher:
 
 class DLCXCipher:
     def __init__(self, game, key, pubkey=None):
-        self._cipher = Blowfish.new(key.encode())
+        self._key = key.encode()
         self._pubkey = None
         if pubkey is not None:
             self._pubkey = RSA.importKey(pubkey)
@@ -180,26 +181,21 @@ class DLCXCipher:
         else:
             raise ValueError('Invalid game selected.')
 
-    def _gen_xor_buff(self, seed, buff_len):
-        xor_buff = array.array('I')
-        for i in range(int(math.ceil(buff_len/8.0))):
-            xor_buff.extend([seed, i])
-        xor_buff = array.array('I', self._cipher.encrypt(xor_buff.tostring()))
-        xor_buff.byteswap()
-        return bytearray(xor_buff.tostring())
-
     def encrypt(self, buff):
-        seed = random.getrandbits(32)
-        buff = bytearray(buff)
-        buff.extend(hashlib.sha1(buff).digest())
-        xor_buff = self._gen_xor_buff(seed, len(buff))
-        for i in range(len(buff)):
-            buff[i] ^= xor_buff[i]
-        seed = array.array('I', [seed])
-        seed.byteswap()
+        nonce = array.array('I', [random.getrandbits(32)])
+        buff += hashlib.sha1(buff).digest()
+        length = len(buff)
+        buff = array.array('I', buff + b'\x00' * (8 - length % 8))
+        buff.byteswap()
+        counter = Counter.new(32, prefix=nonce.tostring(), initial_value=0, little_endian=True)
+        cipher = Blowfish.new(self._key, Blowfish.MODE_CTR, counter=counter)
+        buff = array.array('I', cipher.encrypt(buff.tostring()))
+        buff.byteswap()
+        buff = buff.tostring()[:length]
+        nonce.byteswap()
         if self._sigs:
-            return bytes(buff) + seed.tostring() + b'\x00' * 0x200
-        return bytes(buff) + seed.tostring()
+            return buff + nonce.tostring() + b'\x00' * 0x200
+        return buff + nonce.tostring()
 
     def decrypt(self, buff):
         if self._sigs:
@@ -213,15 +209,18 @@ class DLCXCipher:
                 if verifier.verify(md, buff[-0x200:-0x100]) == False:
                     raise ValueError('Invalid signature in footer.')
             buff = buff[:-0x200]
-        seed = array.array('I', buff[-4:])
-        seed.byteswap()
-        seed = seed[0]
-        buff = bytearray(buff[:-4])
-        xor_buff = self._gen_xor_buff(seed, len(buff))
-        for i in range(len(buff)):
-            buff[i] ^= xor_buff[i]
+        nonce = array.array('I', buff[-4:])
+        nonce.byteswap()
+        length = len(buff) - 4
+        buff = array.array('I', buff[:-4] + b'\x00' * (8 - length % 8))
+        buff.byteswap()
+        counter = Counter.new(32, prefix=nonce.tostring(), initial_value=0, little_endian=True)
+        cipher = Blowfish.new(self._key, Blowfish.MODE_CTR, counter=counter)
+        buff = array.array('I', cipher.decrypt(buff.tostring()))
+        buff.byteswap()
+        buff = buff.tostring()[:length]
         md = buff[-20:]
-        buff = bytes(buff[:-20])
+        buff = buff[:-20]
         if md != hashlib.sha1(buff).digest():
             raise ValueError('Invalid SHA1 hash in footer.')
         return buff
