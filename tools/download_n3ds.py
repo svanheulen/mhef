@@ -41,7 +41,7 @@ if args.game == '4G':
     elif args.region == 'TWN':
         uri = 'http://goshawk4g.capcom.co.jp/redgiant/dl/pro_tw/{}'.format(args.remotefile)
 elif args.game == 'X':
-    uri = 'http://spector.capcom.co.jp/3ds/mhx_jp/{}'.format(args.remotefile)
+    uri = 'http://spector.capcom.co.jp/3ds/mhx_new_jp/{}'.format(args.remotefile)
     headers = {'User-Agent': 'Capcom Browser Services for MonsterHunter_X'}
     if args.region == 'USA':
         uri = 'http://spector.capcom.co.jp/3ds/mhx_us/{}'.format(args.remotefile)
